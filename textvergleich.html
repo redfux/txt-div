@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Textdatei-Vergleich</title>
+  <style>
+    /* ── CSS-Variablen: Dark/Light ───────────────────────────────────────── */
+    :root {
+      --bg:          #1a1a2e;
+      --bg2:         #16213e;
+      --bg3:         #111827;
+      --border:      #0f3460;
+      --border2:     #1f2937;
+      --accent:      #e94560;
+      --accent-h:    #c73250;
+      --btn-bg:      #0f3460;
+      --btn-bg-h:    #1a4a80;
+      --text:        #e0e0e0;
+      --text-dim:    #a0a0b0;
+      --text-num:    #555;
+      --text-hdr:    #a0c0e0;
+      --stats-col:   #888;
+      --ph-col:      #444;
+      --line-border: rgba(255,255,255,0.03);
+      --empty-bg:    rgba(255,255,255,0.02);
+      --minimap-bg:  #0d1525;
+      --minimap-cur: rgba(255,255,255,0.12);
+      --nav-bg:      #16213e;
+    }
+    [data-theme="light"] {
+      --bg:          #f5f5f5;
+      --bg2:         #ffffff;
+      --bg3:         #e8eaf0;
+      --border:      #c5cde0;
+      --border2:     #d8dce8;
+      --accent:      #c0273a;
+      --accent-h:    #962030;
+      --btn-bg:      #dde3f0;
+      --btn-bg-h:    #c5cde0;
+      --text:        #1a1a2e;
+      --text-dim:    #555577;
+      --text-num:    #9090a0;
+      --text-hdr:    #334466;
+      --stats-col:   #667788;
+      --ph-col:      #aaa;
+      --line-border: rgba(0,0,0,0.04);
+      --empty-bg:    rgba(0,0,0,0.02);
+      --minimap-bg:  #e0e4ef;
+      --minimap-cur: rgba(0,0,0,0.12);
+      --nav-bg:      #eef0f8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────────── */
+    header {
+      background: var(--bg2);
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      flex: 1;
+    }
+
+    /* ── Theme Toggle ────────────────────────────────────────────────────── */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-track {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      transition: transform 0.2s;
+    }
+
+    [data-theme="light"] .toggle-thumb { transform: translateX(16px); }
+
+    /* ── Upload Bar ──────────────────────────────────────────────────────── */
+    .upload-bar {
+      background: var(--bg2);
+      padding: 12px 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .upload-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .upload-group label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .file-btn {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-btn input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .file-btn span {
+      display: block;
+      padding: 7px 14px;
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 300px;
+      color: var(--text);
+    }
+
+    .file-btn:hover span { background: var(--btn-bg-h); }
+
+    .compare-btn {
+      padding: 8px 22px;
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .compare-btn:hover { background: var(--accent-h); }
+    .compare-btn:disabled { background: var(--btn-bg); color: var(--text-dim); cursor: not-allowed; }
+
+    /* ── Nav + Legend Bar ────────────────────────────────────────────────── */
+    .toolbar {
+      background: var(--nav-bg);
+      padding: 7px 16px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .nav-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      padding: 4px 12px;
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      line-height: 1.4;
+    }
+
+    .nav-btn:hover { background: var(--btn-bg-h); }
+    .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .nav-counter {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .dot-added   { background: rgba(50,180,80,.6);  border: 1px solid #32b450; }
+    .dot-changed { background: rgba(220,140,30,.6); border: 1px solid #dc8c1e; }
+    .dot-removed { background: rgba(220,60,60,.6);  border: 1px solid #dc3c3c; }
+
+    /* ── Main Layout ─────────────────────────────────────────────────────── */
+    .diff-wrapper {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .diff-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .diff-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+
+    .diff-pane:last-child { border-right: none; }
+
+    .pane-header {
+      padding: 6px 14px;
+      background: var(--btn-bg);
+      font-size: 0.78rem;
+      color: var(--text-hdr);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .pane-content {
+      overflow: auto;
+      flex: 1;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+
+    .line {
+      display: flex;
+      min-height: 1.6em;
+      border-bottom: 1px solid var(--line-border);
+    }
+
+    .line.current-diff {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+      z-index: 1;
+      position: relative;
+    }
+
+    .line-num {
+      min-width: 44px;
+      padding: 0 8px;
+      text-align: right;
+      color: var(--text-num);
+      background: var(--bg3);
+      user-select: none;
+      border-right: 1px solid var(--border2);
+      font-size: 0.76rem;
+      line-height: 1.6;
+      flex-shrink: 0;
+    }
+
+    .line-text {
+      padding: 0 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      flex: 1;
+    }
+
+    .line.added   .line-text { background: rgba(50,180,80,.15); }
+    .line.removed .line-text { background: rgba(220,60,60,.15); }
+    .line.changed .line-text { background: rgba(220,140,30,.15); }
+    .line.empty   .line-text { background: var(--empty-bg); color: transparent; }
+
+    mark.added   { background: rgba(50,180,80,.5);  border-radius: 2px; color: inherit; }
+    mark.removed { background: rgba(220,60,60,.5);  border-radius: 2px; color: inherit; }
+    mark.changed { background: rgba(220,140,30,.5); border-radius: 2px; color: inherit; }
+
+    /* ── Minimap ─────────────────────────────────────────────────────────── */
+    .minimap {
+      width: 20px;
+      background: var(--minimap-bg);
+      border-left: 1px solid var(--border);
+      position: relative;
+      flex-shrink: 0;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .minimap-track {
+      position: absolute;
+      inset: 0;
+    }
+
+    .minimap-seg {
+      position: absolute;
+      left: 2px;
+      right: 2px;
+      border-radius: 2px;
+      min-height: 2px;
+    }
+
+    .minimap-seg.added   { background: rgba(50,180,80,.75); }
+    .minimap-seg.changed { background: rgba(220,140,30,.75); }
+    .minimap-seg.removed { background: rgba(220,60,60,.75); }
+
+    .minimap-viewport {
+      position: absolute;
+      left: 0;
+      right: 0;
+      background: var(--minimap-cur);
+      border: 1px solid rgba(128,128,200,0.3);
+      border-radius: 2px;
+      pointer-events: none;
+      transition: top 0.05s;
+    }
+
+    /* ── Placeholder ─────────────────────────────────────────────────────── */
+    .placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      color: var(--ph-col);
+      font-size: 1rem;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .stats { font-size: 0.76rem; color: var(--stats-col); }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <h1>Textdatei-Vergleich</h1>
+  <label class="theme-toggle" id="themeToggle" title="Hell/Dunkel umschalten">
+    <span id="themeIcon">☀️</span>
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span id="themeLabel">Light</span>
+  </label>
+</header>
+
+<!-- Upload -->
+<div class="upload-bar">
+  <div class="upload-group">
+    <label>Datei A (Original)</label>
+    <div class="file-btn">
+      <input type="file" id="fileA" accept=".txt,.md,.csv,.log,.json,.xml,.html,.js,.ts,.css,.py">
+      <span id="labelA">Datei auswählen…</span>
+    </div>
+  </div>
+  <div class="upload-group">
+    <label>Datei B (Vergleich)</label>
+    <div class="file-btn">
+      <input type="file" id="fileB" accept=".txt,.md,.csv,.log,.json,.xml,.html,.js,.ts,.css,.py">
+      <span id="labelB">Datei auswählen…</span>
+    </div>
+  </div>
+  <button class="compare-btn" id="compareBtn" disabled>Vergleichen</button>
+</div>
+
+<!-- Toolbar: Navigation + Legende -->
+<div class="toolbar">
+  <div class="nav-group">
+    <button class="nav-btn" id="prevBtn" disabled title="Vorheriger Unterschied">&#8593; Zurück</button>
+    <span class="nav-counter" id="navCounter">–</span>
+    <button class="nav-btn" id="nextBtn" disabled title="Nächster Unterschied">Weiter &#8595;</button>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot dot-added"></div> Hinzugefügt</div>
+    <div class="legend-item"><div class="legend-dot dot-changed"></div> Geändert</div>
+    <div class="legend-item"><div class="legend-dot dot-removed"></div> Entfernt</div>
+  </div>
+</div>
+
+<!-- Diff-Bereich + Minimap -->
+<div class="diff-wrapper">
+  <div class="diff-container" id="diffContainer">
+    <div class="placeholder">Zwei Textdateien auswählen und auf „Vergleichen" klicken</div>
+  </div>
+  <div class="minimap" id="minimap" style="display:none">
+    <div class="minimap-track" id="minimapTrack"></div>
+    <div class="minimap-viewport" id="minimapViewport"></div>
+  </div>
+</div>
+
+<script>
+  // ── Theme ─────────────────────────────────────────────────────────────────
+  const html = document.documentElement;
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const light = html.dataset.theme !== 'light';
+    html.dataset.theme = light ? 'light' : 'dark';
+    document.getElementById('themeIcon').textContent  = light ? '🌙' : '☀️';
+    document.getElementById('themeLabel').textContent = light ? 'Dark' : 'Light';
+    updateMinimapViewport();
+  });
+
+  // ── File loading ──────────────────────────────────────────────────────────
+  const fileA = document.getElementById('fileA');
+  const fileB = document.getElementById('fileB');
+  const btn   = document.getElementById('compareBtn');
+  let contentA = null, contentB = null;
+
+  function readFile(input, labelEl, slot) {
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+      labelEl.textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = e => {
+        if (slot === 'A') contentA = e.target.result;
+        else              contentB = e.target.result;
+        btn.disabled = !(contentA !== null && contentB !== null);
+      };
+      reader.readAsText(file, 'UTF-8');
+    });
+  }
+
+  readFile(fileA, document.getElementById('labelA'), 'A');
+  readFile(fileB, document.getElementById('labelB'), 'B');
+  btn.addEventListener('click', () => compare(contentA, contentB));
+
+  // ── Navigation state ──────────────────────────────────────────────────────
+  let diffGroups   = [];  // [{rowIndex, type}] — one entry per diff-group
+  let currentDiff  = -1;
+  let syncLocked   = false;
+
+  const prevBtn    = document.getElementById('prevBtn');
+  const nextBtn    = document.getElementById('nextBtn');
+  const navCounter = document.getElementById('navCounter');
+
+  prevBtn.addEventListener('click', () => jumpTo(currentDiff - 1));
+  nextBtn.addEventListener('click', () => jumpTo(currentDiff + 1));
+
+  function jumpTo(idx) {
+    if (!diffGroups.length) return;
+    idx = Math.max(0, Math.min(diffGroups.length - 1, idx));
+    currentDiff = idx;
+
+    document.querySelectorAll('.current-diff').forEach(el => el.classList.remove('current-diff'));
+
+    const rowIdx = diffGroups[idx].rowIndex;
+    const sa = document.getElementById('scrollA');
+    const sb = document.getElementById('scrollB');
+    if (!sa) return;
+
+    const rowsA = sa.children;
+    const rowsB = sb.children;
+
+    if (rowsA[rowIdx]) rowsA[rowIdx].classList.add('current-diff');
+    if (rowsB[rowIdx]) rowsB[rowIdx].classList.add('current-diff');
+
+    // Use offsetTop of the actual element — works regardless of variable line heights
+    const el = rowsA[rowIdx];
+    if (el) {
+      const target = el.offsetTop - sa.clientHeight * 0.2;
+      // Temporarily disable sync so both panes land on the same value
+      syncLocked = true;
+      sa.scrollTop = Math.max(0, target);
+      sb.scrollTop = Math.max(0, target);
+      syncLocked = false;
+      updateMinimapViewport();
+    }
+
+    updateNavUI();
+  }
+
+  function updateNavUI() {
+    navCounter.textContent = diffGroups.length
+      ? `${currentDiff + 1} / ${diffGroups.length}`
+      : '–';
+    prevBtn.disabled = currentDiff <= 0;
+    nextBtn.disabled = currentDiff >= diffGroups.length - 1;
+  }
+
+  // ── Minimap ───────────────────────────────────────────────────────────────
+  const minimapEl  = document.getElementById('minimap');
+  const minimapTrack = document.getElementById('minimapTrack');
+  const minimapVP  = document.getElementById('minimapViewport');
+
+  function buildMinimap(ops, totalRows) {
+    minimapTrack.innerHTML = '';
+    if (!totalRows) return;
+
+    const mapH = minimapEl.clientHeight || 400;
+    const segH = Math.max(2, mapH / totalRows);
+
+    ops.forEach((op, i) => {
+      if (op.type === 'equal') return;
+      const seg = document.createElement('div');
+      seg.className = `minimap-seg ${op.type}`;
+      seg.style.top    = `${(i / totalRows) * mapH}px`;
+      seg.style.height = `${segH}px`;
+      minimapTrack.appendChild(seg);
+    });
+  }
+
+  function updateMinimapViewport() {
+    const sa = document.getElementById('scrollA');
+    if (!sa || !minimapEl.style.display || minimapEl.style.display === 'none') return;
+    const mapH      = minimapEl.clientHeight;
+    const totalH    = sa.scrollHeight;
+    const viewH     = sa.clientHeight;
+    const scrollTop = sa.scrollTop;
+    const vpTop  = (scrollTop / totalH) * mapH;
+    const vpHeight = Math.max(4, (viewH / totalH) * mapH);
+    minimapVP.style.top    = `${vpTop}px`;
+    minimapVP.style.height = `${vpHeight}px`;
+  }
+
+  minimapEl.addEventListener('click', e => {
+    const sa = document.getElementById('scrollA');
+    if (!sa) return;
+    const rect  = minimapEl.getBoundingClientRect();
+    const ratio = (e.clientY - rect.top) / minimapEl.clientHeight;
+    sa.scrollTop = ratio * sa.scrollHeight;
+  });
+
+  // ── LCS ───────────────────────────────────────────────────────────────────
+  function lcs(a, b) {
+    const m = a.length, n = b.length;
+    // For very large files, cap to avoid OOM
+    if (m * n > 4_000_000) return fastLcs(a, b);
+    const dp = Array.from({length: m + 1}, () => new Uint16Array(n + 1));
+    for (let i = m - 1; i >= 0; i--)
+      for (let j = n - 1; j >= 0; j--)
+        dp[i][j] = a[i] === b[j] ? dp[i+1][j+1] + 1
+                                  : Math.max(dp[i+1][j], dp[i][j+1]);
+    const seq = [];
+    let i = 0, j = 0;
+    while (i < m && j < n) {
+      if (a[i] === b[j]) { seq.push([i, j]); i++; j++; }
+      else if (dp[i+1][j] >= dp[i][j+1]) i++;
+      else j++;
+    }
+    return seq;
+  }
+
+  // Simple greedy fallback for huge files
+  function fastLcs(a, b) {
+    const bMap = new Map();
+    b.forEach((v, i) => { if (!bMap.has(v)) bMap.set(v, i); });
+    const seq = [];
+    let jMin = 0;
+    for (let i = 0; i < a.length; i++) {
+      const j = bMap.get(a[i]);
+      if (j !== undefined && j >= jMin) { seq.push([i, j]); jMin = j + 1; }
+    }
+    return seq;
+  }
+
+  function diffLines(linesA, linesB) {
+    const common = lcs(linesA, linesB);
+    const ops = [];
+    let ia = 0, ib = 0, ci = 0;
+    while (ci < common.length || ia < linesA.length || ib < linesB.length) {
+      const ca = ci < common.length ? common[ci][0] : linesA.length;
+      const cb = ci < common.length ? common[ci][1] : linesB.length;
+      const removedBlock = linesA.slice(ia, ca);
+      const addedBlock   = linesB.slice(ib, cb);
+      const maxLen = Math.max(removedBlock.length, addedBlock.length);
+      for (let k = 0; k < maxLen; k++) {
+        if (k < removedBlock.length && k < addedBlock.length)
+          ops.push({type: 'changed', textA: removedBlock[k], textB: addedBlock[k]});
+        else if (k < removedBlock.length)
+          ops.push({type: 'removed', textA: removedBlock[k], textB: null});
+        else
+          ops.push({type: 'added',   textA: null, textB: addedBlock[k]});
+      }
+      if (ci < common.length) {
+        ops.push({type: 'equal', textA: linesA[ca], textB: linesB[cb]});
+        ia = ca + 1; ib = cb + 1; ci++;
+      } else {
+        ia = linesA.length; ib = linesB.length;
+      }
+    }
+    return ops;
+  }
+
+  function charDiff(a, b) {
+    if (a === b) return [escHtml(a), escHtml(b)];
+    const oa = [], ob = [];
+    const common = lcs([...a], [...b]);
+    let ia = 0, ib = 0, ci = 0;
+    function flush(arrA, arrB, ca, cb) {
+      const ra = a.slice(ia, ca), rb = b.slice(ib, cb);
+      if (ra) arrA.push(`<mark class="changed">${escHtml(ra)}</mark>`);
+      if (rb) arrB.push(`<mark class="changed">${escHtml(rb)}</mark>`);
+    }
+    while (ci <= common.length) {
+      const ca = ci < common.length ? common[ci][0] : a.length;
+      const cb = ci < common.length ? common[ci][1] : b.length;
+      flush(oa, ob, ca, cb);
+      if (ci < common.length) {
+        const ch = escHtml(a[ca]);
+        oa.push(ch); ob.push(ch);
+        ia = ca + 1; ib = cb + 1;
+      }
+      ci++;
+    }
+    return [oa.join(''), ob.join('')];
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function compare(textA, textB) {
+    const linesA = textA.split('\n');
+    const linesB = textB.split('\n');
+    const ops    = diffLines(linesA, linesB);
+
+    let numA = 0, numB = 0;
+    const stats  = {added: 0, removed: 0, changed: 0};
+    const leftRows  = [];
+    const rightRows = [];
+    const newGroups = [];
+    let inDiffGroup = false;
+
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i];
+
+      if (op.type !== 'equal' && !inDiffGroup) {
+        newGroups.push({rowIndex: i, type: op.type});
+        inDiffGroup = true;
+      }
+      if (op.type === 'equal') inDiffGroup = false;
+
+      if (op.type === 'equal') {
+        numA++; numB++;
+        const t = escHtml(op.textA);
+        leftRows.push (`<div class="line"><span class="line-num">${numA}</span><span class="line-text">${t}</span></div>`);
+        rightRows.push(`<div class="line"><span class="line-num">${numB}</span><span class="line-text">${t}</span></div>`);
+      } else if (op.type === 'changed') {
+        numA++; numB++; stats.changed++;
+        const [hA, hB] = charDiff(op.textA, op.textB);
+        leftRows.push (`<div class="line changed"><span class="line-num">${numA}</span><span class="line-text">${hA}</span></div>`);
+        rightRows.push(`<div class="line changed"><span class="line-num">${numB}</span><span class="line-text">${hB}</span></div>`);
+      } else if (op.type === 'removed') {
+        numA++; stats.removed++;
+        leftRows.push (`<div class="line removed"><span class="line-num">${numA}</span><span class="line-text">${escHtml(op.textA)}</span></div>`);
+        rightRows.push(`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span></div>`);
+      } else {
+        numB++; stats.added++;
+        leftRows.push (`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span></div>`);
+        rightRows.push(`<div class="line added"><span class="line-num">${numB}</span><span class="line-text">${escHtml(op.textB)}</span></div>`);
+      }
+    }
+
+    diffGroups  = newGroups;
+    currentDiff = diffGroups.length ? 0 : -1;
+
+    const nameA = document.getElementById('labelA').textContent;
+    const nameB = document.getElementById('labelB').textContent;
+    const statsHtml = `<span class="stats">+${stats.added} &nbsp;~${stats.changed} &nbsp;-${stats.removed}</span>`;
+
+    document.getElementById('diffContainer').innerHTML = `
+      <div class="diff-pane">
+        <div class="pane-header"><span>A: ${escHtml(nameA)}</span>${statsHtml}</div>
+        <div class="pane-content" id="scrollA">${leftRows.join('')}</div>
+      </div>
+      <div class="diff-pane">
+        <div class="pane-header"><span>B: ${escHtml(nameB)}</span>${statsHtml}</div>
+        <div class="pane-content" id="scrollB">${rightRows.join('')}</div>
+      </div>`;
+
+    // Sync scroll between panes
+    const sa = document.getElementById('scrollA');
+    const sb = document.getElementById('scrollB');
+    function sync(source, target) {
+      source.addEventListener('scroll', () => {
+        if (syncLocked) return;
+        syncLocked = true;
+        target.scrollTop = source.scrollTop;
+        syncLocked = false;
+        updateMinimapViewport();
+      });
+    }
+    sync(sa, sb); sync(sb, sa);
+
+    // Minimap
+    minimapEl.style.display = 'block';
+    buildMinimap(ops, ops.length);
+    updateMinimapViewport();
+    sa.addEventListener('scroll', updateMinimapViewport);
+
+    // Nav buttons
+    prevBtn.disabled = false;
+    nextBtn.disabled = false;
+    updateNavUI();
+
+    // Jump to first diff
+    if (diffGroups.length) jumpTo(0);
+  }
+</script>
+</body>
+</html>
