@@ -1,9 +1,10 @@
-<!-- created by ai -->
+<!-- thought up by human, created by ai -->
 <!DOCTYPE html>
 <html lang="de" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none';">
   <title>txt-div</title>
   <style>
     /* ── CSS-Variablen: Dark/Light ───────────────────────────────────────── */
@@ -394,6 +395,18 @@
     }
 
     .stats { font-size: 0.76rem; color: var(--stats-col); }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    footer {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 5px 20px;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -762,5 +775,10 @@
     if (diffGroups.length) jumpTo(0);
   }
 </script>
+
+<footer>
+  <span>thought up by human, created by ai</span>
+  <span>v0.1.0</span>
+</footer>
 </body>
 </html>
