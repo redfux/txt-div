@@ -298,10 +298,21 @@
       border-bottom: 1px solid var(--line-border);
     }
 
+    /* Rahmen um das aktuelle Navigationsziel. Ein outline würde jede Zeile
+       einzeln einkästeln; über inset-Schatten pro Kante entsteht dagegen ein
+       durchgehender Rahmen, auch wenn das Ziel mehrere Zeilen umfasst. */
     .line.current-diff {
-      outline: 2px solid var(--accent); outline-offset: -2px;
       z-index: 1; position: relative;
+      --edge-l: inset  2px 0 0 var(--accent);
+      --edge-r: inset -2px 0 0 var(--accent);
+      --edge-t: inset 0  2px 0 var(--accent);
+      --edge-b: inset 0 -2px 0 var(--accent);
     }
+
+    .line.current-diff.nav-single { box-shadow: var(--edge-l), var(--edge-r), var(--edge-t), var(--edge-b); }
+    .line.current-diff.nav-first  { box-shadow: var(--edge-l), var(--edge-r), var(--edge-t); }
+    .line.current-diff.nav-mid    { box-shadow: var(--edge-l), var(--edge-r); }
+    .line.current-diff.nav-last   { box-shadow: var(--edge-l), var(--edge-r), var(--edge-b); }
 
     .line-num {
       min-width: 44px; padding: 0 8px; text-align: right;
@@ -616,8 +627,12 @@
   btn.addEventListener('click', () => compare(contentA, contentB));
 
   // ── State ─────────────────────────────────────────────────────────────────
-  let diffGroups  = [];
-  let currentDiff = -1;
+  let diffGroups = [];   // je Block: {rowIndex, type, rows: [op-Index, …]}
+  // Navigationsziele im aktuellen Auswahlmodus. Jedes Ziel ist eine Liste
+  // zusammenhängender op-Indizes: blockweise der ganze Block, zeilenweise
+  // je eine einzelne Zeile.
+  let navList    = [];
+  let currentNav = -1;
   // Scroll-Sync: Wer zuletzt gescrollt hat, behält für kurze Zeit die Kontrolle.
   // Ein einfaches Boolean reicht nicht — Scroll-Events feuern asynchron, das Flag
   // wäre beim Eintreffen des Echo-Events längst wieder zurückgesetzt.
@@ -659,27 +674,63 @@
   modeToggle.addEventListener('click', () => {
     lineMode = !lineMode;
     applyModeUI();
+    // Navigation folgt dem Modus. Die aktuelle Position bleibt erhalten: das
+    // neue Ziel ist dasjenige, das die bisher markierte erste Zeile enthält.
+    if (navList.length) {
+      const anchor = navList[currentNav] ? navList[currentNav][0] : null;
+      buildNavList(anchor);
+      jumpTo(currentNav);
+    }
   });
 
-  prevBtn.addEventListener('click', () => jumpTo(currentDiff - 1));
-  nextBtn.addEventListener('click', () => jumpTo(currentDiff + 1));
+  // Baut die Navigationsziele passend zum Auswahlmodus auf. `anchor` ist ein
+  // op-Index, dessen Ziel danach als aktuelles gesetzt wird.
+  function buildNavList(anchor) {
+    navList = lineMode
+      ? allOps.reduce((acc, op, i) => {
+          if (op.type !== 'equal') acc.push([i]);
+          return acc;
+        }, [])
+      : diffGroups.map(g => g.rows);
+
+    if (anchor == null) {
+      currentNav = navList.length ? 0 : -1;
+      return;
+    }
+    const idx = navList.findIndex(rows => rows.includes(anchor));
+    currentNav = idx >= 0 ? idx : 0;
+  }
+
+  prevBtn.addEventListener('click', () => jumpTo(currentNav - 1));
+  nextBtn.addEventListener('click', () => jumpTo(currentNav + 1));
 
   function jumpTo(idx) {
-    if (!diffGroups.length) return;
-    idx = Math.max(0, Math.min(diffGroups.length - 1, idx));
-    currentDiff = idx;
+    if (!navList.length) return;
+    idx = Math.max(0, Math.min(navList.length - 1, idx));
+    currentNav = idx;
 
-    document.querySelectorAll('.current-diff').forEach(el => el.classList.remove('current-diff'));
+    document.querySelectorAll('.current-diff').forEach(el =>
+      el.classList.remove('current-diff', 'nav-single', 'nav-first', 'nav-mid', 'nav-last'));
 
-    const rowIdx = diffGroups[idx].rowIndex;
     const sa = document.getElementById('scrollA');
     const sb = document.getElementById('scrollB');
     if (!sa) return;
 
-    if (sa.children[rowIdx]) sa.children[rowIdx].classList.add('current-diff');
-    if (sb.children[rowIdx]) sb.children[rowIdx].classList.add('current-diff');
+    // Jede Zeile des Ziels markieren; die Kantenklasse ergibt sich aus der
+    // Position innerhalb des Ziels, sodass ein durchgehender Rahmen entsteht.
+    const rows = navList[idx];
+    rows.forEach((r, k) => {
+      const edge = rows.length === 1      ? 'nav-single'
+                 : k === 0                ? 'nav-first'
+                 : k === rows.length - 1  ? 'nav-last'
+                 :                          'nav-mid';
+      for (const pane of [sa, sb]) {
+        const el = pane.children[r];
+        if (el) el.classList.add('current-diff', edge);
+      }
+    });
 
-    const el = sa.children[rowIdx];
+    const el = sa.children[rows[0]];
     if (el) {
       const target = Math.max(0, el.offsetTop - sa.clientHeight * 0.2);
       claimScroll('nav');
@@ -693,11 +744,11 @@
   }
 
   function updateNavUI() {
-    navCounter.textContent = diffGroups.length
-      ? `${currentDiff + 1} / ${diffGroups.length}`
+    navCounter.textContent = navList.length
+      ? `${currentNav + 1} / ${navList.length}`
       : '–';
-    prevBtn.disabled = currentDiff <= 0;
-    nextBtn.disabled = currentDiff >= diffGroups.length - 1;
+    prevBtn.disabled = currentNav <= 0;
+    nextBtn.disabled = currentNav >= navList.length - 1;
   }
 
   // ── Zeilenhöhen der beiden Panes angleichen ──────────────────────────────
@@ -1046,11 +1097,12 @@
 
       if (op.type !== 'equal' && !inDiffGroup) {
         groupIdx++;
-        newGroups.push({rowIndex: i, type: op.type});
+        newGroups.push({rowIndex: i, type: op.type, rows: []});
         inDiffGroup = true;
       }
       if (op.type === 'equal') inDiffGroup = false;
       op.groupIdx = op.type !== 'equal' ? groupIdx : -1;
+      if (op.type !== 'equal') newGroups[groupIdx].rows.push(i);
 
       // Pfeil in A zeigt nach rechts, Pfeil in B nach links: beide weisen zur
       // Gegenseite und bedeuten „diese Version gilt".
@@ -1082,8 +1134,8 @@
       }
     }
 
-    diffGroups  = newGroups;
-    currentDiff = diffGroups.length ? 0 : -1;
+    diffGroups = newGroups;
+    buildNavList(null);
 
     const nameA     = document.getElementById('labelA').textContent;
     const nameB     = document.getElementById('labelB').textContent;
@@ -1148,7 +1200,7 @@
     prevBtn.disabled = false;
     nextBtn.disabled = false;
     updateNavUI();
-    if (diffGroups.length) jumpTo(0);
+    if (navList.length) jumpTo(0);
 
     document.getElementById('resultArea').style.display = '';
     renderResult();
@@ -1157,7 +1209,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.5.3</span>
+  <span>v0.6.0</span>
 </footer>
 </body>
 </html>
