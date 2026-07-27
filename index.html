@@ -278,10 +278,11 @@
       font-size: 0.84rem; line-height: 1.6;
     }
 
-    /* Jede Zeile in beiden Panes hat denselben Aufbau:
-       line-num | line-text | merge-cell (48 px)
-       Das hält die Textbreite in beiden Panes identisch,
-       sodass Zeilenumbrüche gleich auftreten und Zeilen 1:1 fluchten. */
+    /* Jede Zeile enthält in beiden Panes dieselben drei Bausteine, nur
+       spiegelbildlich angeordnet — Pane A: line-num | line-text | merge-cell,
+       Pane B: line-num | merge-cell | line-text. Da die merge-cell in beiden
+       Panes gleich breit ist, bleibt die Textspalte identisch breit, sodass
+       Zeilen an denselben Stellen umbrechen und 1:1 fluchten. */
     .line {
       display: flex; min-height: 1.6em;
       border-bottom: 1px solid var(--line-border);
@@ -317,18 +318,22 @@
     mark.removed { background: rgba(220,60,60,.5);  border-radius: 2px; color: inherit; }
     mark.changed { background: rgba(220,140,30,.5); border-radius: 2px; color: inherit; }
 
-    /* ── Merge-Cell (rechts in jeder Zeile beider Panes) ─────────────────── */
+    /* ── Merge-Pfeile ────────────────────────────────────────────────────────
+       Je ein Pfeil pro Seite, beide zur Mittellinie hin: in Pane A hinter dem
+       Text, in Pane B vor dem Text. Beide Panes behalten dabei genau eine
+       merge-cell gleicher Breite, damit die Textspalten gleich breit bleiben
+       und Zeilen an denselben Stellen umbrechen. */
     .merge-cell {
-      width: 48px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; gap: 2px;
-      padding: 0 3px;
+      width: 26px; flex-shrink: 0;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 1px 3px 0;
     }
 
     .merge-btn {
       width: 20px; height: 20px;
       border: 1px solid var(--border); border-radius: 3px;
       background: var(--btn-bg); color: var(--text-dim);
-      font-size: 0.72rem; font-weight: 700;
+      font-size: 0.8rem;
       cursor: pointer; padding: 0; line-height: 1;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
       display: flex; align-items: center; justify-content: center;
@@ -336,19 +341,17 @@
 
     .merge-btn:hover { background: var(--btn-bg-h); color: var(--text); }
 
-    .merge-btn.btn-a.active {
-      background: rgba(233,69,96,0.3);
-      border-color: var(--accent);
-      color: #ff8099;
-    }
-
-    .merge-btn.btn-b.active {
+    /* Gewählte Seite — einheitliche Auswahlfarbe, die Seite ergibt sich
+       bereits aus der Position des Pfeils */
+    .merge-btn.active {
       background: rgba(50,150,255,0.3);
       border-color: #3296ff;
-      color: #80c0ff;
+      color: #2b7fd4;
     }
 
-    .line.choice-b .line-text {
+    [data-theme="dark"] .merge-btn.active { color: #80c0ff; }
+
+    .line.chosen .line-text {
       outline: 1px dashed rgba(50,150,255,0.6);
       outline-offset: -1px;
     }
@@ -951,17 +954,20 @@
     const sb = document.getElementById('scrollB');
     if (!sa || !sb) return;
 
-    sa.querySelectorAll('.merge-btn').forEach(btn => {
-      const opIdx  = parseInt(btn.dataset.op);
-      const choice = btn.dataset.choice;
-      const op     = allOps[opIdx];
+    // Pfeile stehen jetzt in beiden Panes
+    document.querySelectorAll('.pane-content .merge-btn').forEach(btn => {
+      const op = allOps[parseInt(btn.dataset.op)];
       if (!op) return;
-      btn.classList.toggle('active', op.choice === choice);
+      btn.classList.toggle('active', op.choice === btn.dataset.choice);
     });
 
+    // Die jeweils gewählte Zeile markieren
     for (let i = 0; i < allOps.length; i++) {
+      const choice = allOps[i].choice;
+      const rowA = sa.children[i];
       const rowB = sb.children[i];
-      if (rowB) rowB.classList.toggle('choice-b', allOps[i].choice === 'B');
+      if (rowA) rowA.classList.toggle('chosen', choice === 'A');
+      if (rowB) rowB.classList.toggle('chosen', choice === 'B');
     }
 
     renderResult();
@@ -1024,28 +1030,33 @@
       if (op.type === 'equal') inDiffGroup = false;
       op.groupIdx = op.type !== 'equal' ? groupIdx : -1;
 
-      const mCell = op.type !== 'equal'
-        ? `<span class="merge-cell"><button class="merge-btn btn-a" data-op="${i}" data-choice="A" title="A-Version behalten">A</button><button class="merge-btn btn-b" data-op="${i}" data-choice="B" title="B-Version übernehmen">B</button></span>`
+      // Pfeil in A zeigt nach rechts, Pfeil in B nach links: beide weisen zur
+      // Gegenseite und bedeuten „diese Version gilt".
+      const cellA = op.type !== 'equal'
+        ? `<span class="merge-cell"><button class="merge-btn" data-op="${i}" data-choice="A" title="A-Version übernehmen">&#8594;</button></span>`
+        : emptyCell;
+      const cellB = op.type !== 'equal'
+        ? `<span class="merge-cell"><button class="merge-btn" data-op="${i}" data-choice="B" title="B-Version übernehmen">&#8592;</button></span>`
         : emptyCell;
 
       if (op.type === 'equal') {
         numA++; numB++;
         const t = escHtml(op.textA);
         leftRows.push (`<div class="line"><span class="line-num">${numA}</span><span class="line-text">${t}</span>${emptyCell}</div>`);
-        rightRows.push(`<div class="line"><span class="line-num">${numB}</span><span class="line-text">${t}</span>${emptyCell}</div>`);
+        rightRows.push(`<div class="line"><span class="line-num">${numB}</span>${emptyCell}<span class="line-text">${t}</span></div>`);
       } else if (op.type === 'changed') {
         numA++; numB++; stats.changed++;
         const [hA, hB] = charDiff(op.textA, op.textB);
-        leftRows.push (`<div class="line changed"><span class="line-num">${numA}</span><span class="line-text">${hA}</span>${mCell}</div>`);
-        rightRows.push(`<div class="line changed"><span class="line-num">${numB}</span><span class="line-text">${hB}</span>${emptyCell}</div>`);
+        leftRows.push (`<div class="line changed"><span class="line-num">${numA}</span><span class="line-text">${hA}</span>${cellA}</div>`);
+        rightRows.push(`<div class="line changed"><span class="line-num">${numB}</span>${cellB}<span class="line-text">${hB}</span></div>`);
       } else if (op.type === 'removed') {
         numA++; stats.removed++;
-        leftRows.push (`<div class="line removed"><span class="line-num">${numA}</span><span class="line-text">${escHtml(op.textA)}</span>${mCell}</div>`);
-        rightRows.push(`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span>${emptyCell}</div>`);
+        leftRows.push (`<div class="line removed"><span class="line-num">${numA}</span><span class="line-text">${escHtml(op.textA)}</span>${cellA}</div>`);
+        rightRows.push(`<div class="line empty"><span class="line-num"> </span>${cellB}<span class="line-text"> </span></div>`);
       } else {
         numB++; stats.added++;
-        leftRows.push (`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span>${mCell}</div>`);
-        rightRows.push(`<div class="line added"><span class="line-num">${numB}</span><span class="line-text">${escHtml(op.textB)}</span>${emptyCell}</div>`);
+        leftRows.push (`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span>${cellA}</div>`);
+        rightRows.push(`<div class="line added"><span class="line-num">${numB}</span>${cellB}<span class="line-text">${escHtml(op.textB)}</span></div>`);
       }
     }
 
@@ -1098,11 +1109,14 @@
       syncResultToDiff(rc);
     });
 
-    sa.addEventListener('click', e => {
+    // Pfeile sitzen in beiden Panes, daher beide Panes abhören
+    const onMergeClick = e => {
       const mbtn = e.target.closest('.merge-btn');
       if (!mbtn) return;
       setChoice(parseInt(mbtn.dataset.op), mbtn.dataset.choice);
-    });
+    };
+    sa.addEventListener('click', onMergeClick);
+    sb.addEventListener('click', onMergeClick);
 
     minimapEl.style.display = 'block';
     buildMinimap(ops, ops.length);
@@ -1121,7 +1135,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.4.1</span>
+  <span>v0.5.0</span>
 </footer>
 </body>
 </html>

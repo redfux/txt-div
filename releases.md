@@ -5,6 +5,20 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.5.0] – 2026-07-27
+
+### Changed
+- Merge-Bedienung von A/B-Buchstaben auf Pfeile umgestellt, je einer auf der eigenen Seite statt beide links:
+  - Pane A: `→` hinter dem Text, Pane B: `←` vor dem Text — beide direkt an der Mittellinie, einander gegenüber
+  - Die Pfeile zeigen zur Gegenseite und bedeuten „diese Version gilt"
+  - Auswahl bleibt exklusiv (A oder B oder offen); erneutes Klicken hebt sie auf
+  - Einheitliche blaue Aktivfarbe — welche Seite gewählt ist, ergibt sich aus der Position
+  - Klicks werden jetzt in beiden Panes ausgewertet, vorher nur in Pane A
+  - Bei umgebrochenen Zeilen sitzt der Pfeil oben auf Höhe der ersten Textzeile statt vertikal zentriert
+- Die merge-cell ist in beiden Panes gleich breit (26 px), nur spiegelbildlich angeordnet — die Textspalten bleiben damit gleich breit und die Zeilen fluchten weiterhin 1:1
+
+---
+
 ## [0.4.1] – 2026-07-27
 
 ### Fixed
