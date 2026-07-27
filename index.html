@@ -19,8 +19,8 @@
       --bg3:         #111827;
       --border:      #0f3460;
       --border2:     #1f2937;
-      --accent:      #e94560;
-      --accent-h:    #c73250;
+      --accent:      #23a96a;
+      --accent-h:    #075033;
       --btn-bg:      #0f3460;
       --btn-bg-h:    #1a4a80;
       --text:        #e0e0e0;
@@ -42,8 +42,8 @@
       --bg3:         #e8eaf0;
       --border:      #c5cde0;
       --border2:     #d8dce8;
-      --accent:      #c0273a;
-      --accent-h:    #962030;
+      --accent:      #23a96a;
+      --accent-h:    #075033;
       --btn-bg:      #dde3f0;
       --btn-bg-h:    #c5cde0;
       --text:        #1a1a2e;
@@ -123,7 +123,18 @@
     /* Auf .theme-toggle eingeschränkt, sonst würde der Modus-Switch im
        Light-Theme mitwandern. Der Modus-Switch schaltet über .on. */
     [data-theme="light"] .theme-toggle .toggle-thumb { transform: translateX(16px); }
+
+    /* Der Modus-Switch ist beidseitig beschriftet: Thumb links = Zeilenweise
+       (Label links), Thumb rechts = Blockweise. .on steht daher für
+       Blockweise, nicht für lineMode. */
     .mode-toggle.on .toggle-thumb { transform: translateX(16px); }
+
+    .mode-opt { transition: color 0.2s; }
+
+    .mode-opt.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
 
     /* ── Upload Bar ──────────────────────────────────────────────────────── */
     .upload-bar {
@@ -489,10 +500,11 @@
     <span class="nav-counter" id="navCounter">–</span>
     <button class="nav-btn" id="nextBtn" disabled title="Nächster Unterschied">Weiter &#8595;</button>
   </div>
-  <label class="mode-toggle" id="modeToggle" title="Zwischen Block- und Zeilenauswahl wechseln">
-    <span>Auswahl:</span>
+  <label class="mode-toggle" id="modeToggle" title="Zwischen Zeilen- und Blockauswahl wechseln">
+    <span>Auswahlmodus:</span>
+    <span class="mode-opt" id="modeOptLine">Zeilenweise</span>
     <div class="toggle-track"><div class="toggle-thumb"></div></div>
-    <span id="modeLabel">Blockweise</span>
+    <span class="mode-opt" id="modeOptBlock">Blockweise</span>
   </label>
   <div class="legend">
     <div class="legend-item"><div class="legend-dot dot-added"></div> Hinzugefügt</div>
@@ -631,13 +643,22 @@
   const prevBtn    = document.getElementById('prevBtn');
   const nextBtn    = document.getElementById('nextBtn');
   const navCounter = document.getElementById('navCounter');
-  const modeToggle = document.getElementById('modeToggle');
-  const modeLabel  = document.getElementById('modeLabel');
+  const modeToggle   = document.getElementById('modeToggle');
+  const modeOptLine  = document.getElementById('modeOptLine');
+  const modeOptBlock = document.getElementById('modeOptBlock');
+
+  function applyModeUI() {
+    // Thumb zeigt zur aktiven Seite: links = Zeilenweise, rechts = Blockweise
+    modeToggle.classList.toggle('on', !lineMode);
+    modeOptLine.classList.toggle('active', lineMode);
+    modeOptBlock.classList.toggle('active', !lineMode);
+  }
+
+  applyModeUI();
 
   modeToggle.addEventListener('click', () => {
     lineMode = !lineMode;
-    modeLabel.textContent = lineMode ? 'Zeilenweise' : 'Blockweise';
-    modeToggle.classList.toggle('on', lineMode);
+    applyModeUI();
   });
 
   prevBtn.addEventListener('click', () => jumpTo(currentDiff - 1));
@@ -1136,7 +1157,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.5.2</span>
+  <span>v0.5.3</span>
 </footer>
 </body>
 </html>
