@@ -262,6 +262,7 @@
       display: flex;
       flex: 1;
       overflow: hidden;
+      min-height: 0;
     }
 
     .diff-container {
@@ -342,6 +343,153 @@
     mark.added   { background: rgba(50,180,80,.5);  border-radius: 2px; color: inherit; }
     mark.removed { background: rgba(220,60,60,.5);  border-radius: 2px; color: inherit; }
     mark.changed { background: rgba(220,140,30,.5); border-radius: 2px; color: inherit; }
+
+    /* ── Merge Column ────────────────────────────────────────────────────── */
+    .merge-pane {
+      width: 52px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+
+    .merge-pane .pane-header {
+      justify-content: center;
+      letter-spacing: 0;
+      font-size: 0.9rem;
+    }
+
+    .merge-scroll {
+      overflow: hidden;
+      flex: 1;
+      background: var(--bg3);
+    }
+
+    .merge-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      min-height: 1.6em;
+      border-bottom: 1px solid var(--line-border);
+    }
+
+    .merge-btn {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--btn-bg);
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .merge-btn:hover { background: var(--btn-bg-h); color: var(--text); }
+
+    .merge-btn.active {
+      background: rgba(50,150,255,0.3);
+      border-color: #3296ff;
+      color: #80c0ff;
+    }
+
+    .line.merge-source .line-text {
+      outline: 1px dashed rgba(50,150,255,0.55);
+      outline-offset: -1px;
+    }
+
+    /* ── Result Area ─────────────────────────────────────────────────────── */
+    .result-area {
+      flex-shrink: 0;
+      border-top: 2px solid var(--border);
+    }
+
+    .result-toggle {
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      background: var(--nav-bg);
+      border-bottom: 1px solid transparent;
+    }
+
+    .result-toggle:hover { color: var(--text); }
+
+    .result-chevron {
+      display: inline-block;
+      transition: transform 0.18s;
+    }
+
+    .result-area.open .result-chevron { transform: rotate(90deg); }
+    .result-area.open .result-toggle  { border-bottom-color: var(--border); }
+
+    .result-panels {
+      display: none;
+      height: 250px;
+    }
+
+    .result-area.open .result-panels { display: flex; }
+
+    .result-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .result-pane:last-child { border-right: none; }
+
+    .result-pane-header {
+      padding: 5px 12px;
+      background: var(--btn-bg);
+      font-size: 0.78rem;
+      color: var(--text-hdr);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 8px;
+    }
+
+    .result-actions { display: flex; gap: 5px; }
+
+    .result-btn {
+      padding: 2px 9px;
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .result-btn:hover { background: var(--btn-bg-h); }
+
+    .result-content {
+      overflow: auto;
+      flex: 1;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+
+    .line.merged .line-text { background: rgba(50,150,255,0.18); }
 
     /* ── Minimap ─────────────────────────────────────────────────────────── */
     .minimap {
@@ -465,6 +613,37 @@
   </div>
 </div>
 
+<!-- Merge-Ergebnis -->
+<div class="result-area" id="resultArea" style="display:none">
+  <div class="result-toggle" id="resultToggle">
+    <span class="result-chevron">▶</span>
+    <span>Merge-Ergebnis</span>
+    <span id="resultHint" style="margin-left:auto;font-size:0.75rem"></span>
+  </div>
+  <div class="result-panels">
+    <div class="result-pane">
+      <div class="result-pane-header">
+        <span id="resultLabelA">Ergebnis A</span>
+        <div class="result-actions">
+          <button class="result-btn" id="copyBtnA">Kopieren</button>
+          <button class="result-btn" id="saveBtnA">Speichern</button>
+        </div>
+      </div>
+      <div class="result-content" id="resultContentA"></div>
+    </div>
+    <div class="result-pane">
+      <div class="result-pane-header">
+        <span id="resultLabelB">Ergebnis B</span>
+        <div class="result-actions">
+          <button class="result-btn" id="copyBtnB">Kopieren</button>
+          <button class="result-btn" id="saveBtnB">Speichern</button>
+        </div>
+      </div>
+      <div class="result-content" id="resultContentB"></div>
+    </div>
+  </div>
+</div>
+
 <script>
   // ── Theme ─────────────────────────────────────────────────────────────────
   const html = document.documentElement;
@@ -501,10 +680,11 @@
   readFile(fileB, document.getElementById('labelB'), 'B');
   btn.addEventListener('click', () => compare(contentA, contentB));
 
-  // ── Navigation state ──────────────────────────────────────────────────────
-  let diffGroups   = [];  // [{rowIndex, type}] — one entry per diff-group
-  let currentDiff  = -1;
-  let syncLocked   = false;
+  // ── State ─────────────────────────────────────────────────────────────────
+  let diffGroups  = [];
+  let currentDiff = -1;
+  let syncLocked  = false;
+  let allOps      = [];
 
   const prevBtn    = document.getElementById('prevBtn');
   const nextBtn    = document.getElementById('nextBtn');
@@ -525,20 +705,17 @@
     const sb = document.getElementById('scrollB');
     if (!sa) return;
 
-    const rowsA = sa.children;
-    const rowsB = sb.children;
+    if (sa.children[rowIdx]) sa.children[rowIdx].classList.add('current-diff');
+    if (sb.children[rowIdx]) sb.children[rowIdx].classList.add('current-diff');
 
-    if (rowsA[rowIdx]) rowsA[rowIdx].classList.add('current-diff');
-    if (rowsB[rowIdx]) rowsB[rowIdx].classList.add('current-diff');
-
-    // Use offsetTop of the actual element — works regardless of variable line heights
-    const el = rowsA[rowIdx];
+    const el = sa.children[rowIdx];
     if (el) {
       const target = el.offsetTop - sa.clientHeight * 0.2;
-      // Temporarily disable sync so both panes land on the same value
       syncLocked = true;
       sa.scrollTop = Math.max(0, target);
       sb.scrollTop = Math.max(0, target);
+      const sm = document.getElementById('scrollM');
+      if (sm) sm.scrollTop = Math.max(0, target);
       syncLocked = false;
       updateMinimapViewport();
     }
@@ -555,17 +732,15 @@
   }
 
   // ── Minimap ───────────────────────────────────────────────────────────────
-  const minimapEl  = document.getElementById('minimap');
+  const minimapEl    = document.getElementById('minimap');
   const minimapTrack = document.getElementById('minimapTrack');
-  const minimapVP  = document.getElementById('minimapViewport');
+  const minimapVP    = document.getElementById('minimapViewport');
 
   function buildMinimap(ops, totalRows) {
     minimapTrack.innerHTML = '';
     if (!totalRows) return;
-
     const mapH = minimapEl.clientHeight || 400;
     const segH = Math.max(2, mapH / totalRows);
-
     ops.forEach((op, i) => {
       if (op.type === 'equal') return;
       const seg = document.createElement('div');
@@ -578,15 +753,12 @@
 
   function updateMinimapViewport() {
     const sa = document.getElementById('scrollA');
-    if (!sa || !minimapEl.style.display || minimapEl.style.display === 'none') return;
-    const mapH      = minimapEl.clientHeight;
-    const totalH    = sa.scrollHeight;
-    const viewH     = sa.clientHeight;
-    const scrollTop = sa.scrollTop;
-    const vpTop  = (scrollTop / totalH) * mapH;
-    const vpHeight = Math.max(4, (viewH / totalH) * mapH);
-    minimapVP.style.top    = `${vpTop}px`;
-    minimapVP.style.height = `${vpHeight}px`;
+    if (!sa || minimapEl.style.display === 'none') return;
+    const mapH   = minimapEl.clientHeight;
+    const totalH = sa.scrollHeight;
+    const viewH  = sa.clientHeight;
+    minimapVP.style.top    = `${(sa.scrollTop / totalH) * mapH}px`;
+    minimapVP.style.height = `${Math.max(4, (viewH / totalH) * mapH)}px`;
   }
 
   minimapEl.addEventListener('click', e => {
@@ -600,7 +772,6 @@
   // ── LCS ───────────────────────────────────────────────────────────────────
   function lcs(a, b) {
     const m = a.length, n = b.length;
-    // For very large files, cap to avoid OOM
     if (m * n > 4_000_000) return fastLcs(a, b);
     const dp = Array.from({length: m + 1}, () => new Uint16Array(n + 1));
     for (let i = m - 1; i >= 0; i--)
@@ -617,7 +788,6 @@
     return seq;
   }
 
-  // Simple greedy fallback for huge files
   function fastLcs(a, b) {
     const bMap = new Map();
     b.forEach((v, i) => { if (!bMap.has(v)) bMap.set(v, i); });
@@ -686,54 +856,172 @@
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  // ── Merge helpers ─────────────────────────────────────────────────────────
+  function computeResult(side) {
+    const lines = [];
+    const mergedIdx = new Set();
+    for (const op of allOps) {
+      const g = op.groupIdx >= 0 ? diffGroups[op.groupIdx] : null;
+      if (op.type === 'equal') {
+        lines.push(op.textA);
+      } else if (side === 'A') {
+        if (g && g.mergeToA) {
+          if (op.textB !== null) { mergedIdx.add(lines.length); lines.push(op.textB); }
+        } else {
+          if (op.textA !== null) lines.push(op.textA);
+        }
+      } else {
+        if (g && g.mergeToB) {
+          if (op.textA !== null) { mergedIdx.add(lines.length); lines.push(op.textA); }
+        } else {
+          if (op.textB !== null) lines.push(op.textB);
+        }
+      }
+    }
+    return { text: lines.join('\n'), lines, mergedIdx };
+  }
+
+  function renderResult() {
+    const nameA = document.getElementById('labelA').textContent;
+    const nameB = document.getElementById('labelB').textContent;
+    document.getElementById('resultLabelA').textContent = `Ergebnis A: ${nameA}`;
+    document.getElementById('resultLabelB').textContent = `Ergebnis B: ${nameB}`;
+
+    const rA = computeResult('A');
+    const rB = computeResult('B');
+
+    document.getElementById('resultContentA').innerHTML = rA.lines.map((l, i) =>
+      `<div class="line${rA.mergedIdx.has(i) ? ' merged' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
+    ).join('');
+
+    document.getElementById('resultContentB').innerHTML = rB.lines.map((l, i) =>
+      `<div class="line${rB.mergedIdx.has(i) ? ' merged' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
+    ).join('');
+
+    const countA = diffGroups.filter(g => g.mergeToA).length;
+    const countB = diffGroups.filter(g => g.mergeToB).length;
+    const parts = [];
+    if (countA) parts.push(`${countA} nach A`);
+    if (countB) parts.push(`${countB} nach B`);
+    document.getElementById('resultHint').textContent = parts.length
+      ? parts.join(', ') + ' übernommen'
+      : 'keine Übernahmen aktiv';
+  }
+
+  function updateMergeHighlights() {
+    const sa = document.getElementById('scrollA');
+    const sb = document.getElementById('scrollB');
+    if (!sa || !sb) return;
+
+    document.querySelectorAll('.merge-btn').forEach(btn => {
+      const g   = parseInt(btn.dataset.group);
+      const grp = diffGroups[g];
+      if (!grp) return;
+      btn.classList.toggle('active', btn.dataset.dir === 'toA' ? grp.mergeToA : grp.mergeToB);
+    });
+
+    for (let i = 0; i < allOps.length; i++) {
+      const op  = allOps[i];
+      if (op.groupIdx < 0) continue;
+      const grp = diffGroups[op.groupIdx];
+      const rowA = sa.children[i];
+      const rowB = sb.children[i];
+      if (rowB) rowB.classList.toggle('merge-source', grp.mergeToA);
+      if (rowA) rowA.classList.toggle('merge-source', grp.mergeToB);
+    }
+
+    renderResult();
+  }
+
+  // ── Result Area ───────────────────────────────────────────────────────────
+  document.getElementById('resultToggle').addEventListener('click', () => {
+    document.getElementById('resultArea').classList.toggle('open');
+  });
+
+  document.getElementById('copyBtnA').addEventListener('click', () => {
+    navigator.clipboard.writeText(computeResult('A').text);
+  });
+
+  document.getElementById('copyBtnB').addEventListener('click', () => {
+    navigator.clipboard.writeText(computeResult('B').text);
+  });
+
+  function downloadText(text, filename) {
+    const blob = new Blob([text], {type: 'text/plain'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById('saveBtnA').addEventListener('click', () => {
+    const name = document.getElementById('labelA').textContent;
+    downloadText(computeResult('A').text, name !== 'Datei auswählen…' ? 'merged_' + name : 'ergebnis_a.txt');
+  });
+
+  document.getElementById('saveBtnB').addEventListener('click', () => {
+    const name = document.getElementById('labelB').textContent;
+    downloadText(computeResult('B').text, name !== 'Datei auswählen…' ? 'merged_' + name : 'ergebnis_b.txt');
+  });
+
   // ── Render ────────────────────────────────────────────────────────────────
   function compare(textA, textB) {
     const linesA = textA.split('\n');
     const linesB = textB.split('\n');
     const ops    = diffLines(linesA, linesB);
+    allOps       = ops;
 
     let numA = 0, numB = 0;
-    const stats  = {added: 0, removed: 0, changed: 0};
-    const leftRows  = [];
-    const rightRows = [];
-    const newGroups = [];
-    let inDiffGroup = false;
+    const stats      = {added: 0, removed: 0, changed: 0};
+    const leftRows   = [];
+    const rightRows  = [];
+    const mergeRows  = [];
+    const newGroups  = [];
+    let inDiffGroup  = false;
+    let groupIdx     = -1;
 
     for (let i = 0; i < ops.length; i++) {
       const op = ops[i];
 
       if (op.type !== 'equal' && !inDiffGroup) {
-        newGroups.push({rowIndex: i, type: op.type});
+        groupIdx++;
+        newGroups.push({rowIndex: i, type: op.type, mergeToA: false, mergeToB: false});
         inDiffGroup = true;
       }
       if (op.type === 'equal') inDiffGroup = false;
+      op.groupIdx = op.type !== 'equal' ? groupIdx : -1;
 
       if (op.type === 'equal') {
         numA++; numB++;
         const t = escHtml(op.textA);
         leftRows.push (`<div class="line"><span class="line-num">${numA}</span><span class="line-text">${t}</span></div>`);
         rightRows.push(`<div class="line"><span class="line-num">${numB}</span><span class="line-text">${t}</span></div>`);
+        mergeRows.push(`<div class="merge-row"></div>`);
       } else if (op.type === 'changed') {
         numA++; numB++; stats.changed++;
         const [hA, hB] = charDiff(op.textA, op.textB);
         leftRows.push (`<div class="line changed"><span class="line-num">${numA}</span><span class="line-text">${hA}</span></div>`);
         rightRows.push(`<div class="line changed"><span class="line-num">${numB}</span><span class="line-text">${hB}</span></div>`);
+        mergeRows.push(`<div class="merge-row"><button class="merge-btn" data-group="${groupIdx}" data-dir="toA" title="B-Version in Ergebnis A übernehmen">&#8592;</button><button class="merge-btn" data-group="${groupIdx}" data-dir="toB" title="A-Version in Ergebnis B übernehmen">&#8594;</button></div>`);
       } else if (op.type === 'removed') {
         numA++; stats.removed++;
         leftRows.push (`<div class="line removed"><span class="line-num">${numA}</span><span class="line-text">${escHtml(op.textA)}</span></div>`);
         rightRows.push(`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span></div>`);
+        mergeRows.push(`<div class="merge-row"><button class="merge-btn" data-group="${groupIdx}" data-dir="toA" title="Zeile in Ergebnis A entfernen">&#8592;</button><button class="merge-btn" data-group="${groupIdx}" data-dir="toB" title="Zeile in Ergebnis B einfügen">&#8594;</button></div>`);
       } else {
         numB++; stats.added++;
         leftRows.push (`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span></div>`);
         rightRows.push(`<div class="line added"><span class="line-num">${numB}</span><span class="line-text">${escHtml(op.textB)}</span></div>`);
+        mergeRows.push(`<div class="merge-row"><button class="merge-btn" data-group="${groupIdx}" data-dir="toA" title="Zeile in Ergebnis A einfügen">&#8592;</button><button class="merge-btn" data-group="${groupIdx}" data-dir="toB" title="Zeile in Ergebnis B entfernen">&#8594;</button></div>`);
       }
     }
 
     diffGroups  = newGroups;
     currentDiff = diffGroups.length ? 0 : -1;
 
-    const nameA = document.getElementById('labelA').textContent;
-    const nameB = document.getElementById('labelB').textContent;
+    const nameA     = document.getElementById('labelA').textContent;
+    const nameB     = document.getElementById('labelB').textContent;
     const statsHtml = `<span class="stats">+${stats.added} &nbsp;~${stats.changed} &nbsp;-${stats.removed}</span>`;
 
     document.getElementById('diffContainer').innerHTML = `
@@ -741,44 +1029,59 @@
         <div class="pane-header"><span>A: ${escHtml(nameA)}</span>${statsHtml}</div>
         <div class="pane-content" id="scrollA">${leftRows.join('')}</div>
       </div>
+      <div class="merge-pane">
+        <div class="pane-header">&#8644;</div>
+        <div class="merge-scroll" id="scrollM">${mergeRows.join('')}</div>
+      </div>
       <div class="diff-pane">
         <div class="pane-header"><span>B: ${escHtml(nameB)}</span>${statsHtml}</div>
         <div class="pane-content" id="scrollB">${rightRows.join('')}</div>
       </div>`;
 
-    // Sync scroll between panes
     const sa = document.getElementById('scrollA');
     const sb = document.getElementById('scrollB');
-    function sync(source, target) {
+    const sm = document.getElementById('scrollM');
+
+    function syncTo(source, ...targets) {
       source.addEventListener('scroll', () => {
         if (syncLocked) return;
         syncLocked = true;
-        target.scrollTop = source.scrollTop;
+        targets.forEach(t => { t.scrollTop = source.scrollTop; });
         syncLocked = false;
         updateMinimapViewport();
       });
     }
-    sync(sa, sb); sync(sb, sa);
+    syncTo(sa, sb, sm);
+    syncTo(sb, sa, sm);
 
-    // Minimap
+    sm.addEventListener('click', e => {
+      const mbtn = e.target.closest('.merge-btn');
+      if (!mbtn) return;
+      const g   = parseInt(mbtn.dataset.group);
+      const dir = mbtn.dataset.dir;
+      if (dir === 'toA') diffGroups[g].mergeToA = !diffGroups[g].mergeToA;
+      else                diffGroups[g].mergeToB = !diffGroups[g].mergeToB;
+      updateMergeHighlights();
+    });
+
     minimapEl.style.display = 'block';
     buildMinimap(ops, ops.length);
     updateMinimapViewport();
     sa.addEventListener('scroll', updateMinimapViewport);
 
-    // Nav buttons
     prevBtn.disabled = false;
     nextBtn.disabled = false;
     updateNavUI();
-
-    // Jump to first diff
     if (diffGroups.length) jumpTo(0);
+
+    document.getElementById('resultArea').style.display = '';
+    renderResult();
   }
 </script>
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.2.0</span>
+  <span>v0.3.0</span>
 </footer>
 </body>
 </html>

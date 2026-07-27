@@ -5,6 +5,22 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.3.0] – 2026-07-27
+
+### Added
+- Merge-Spalte zwischen den Diff-Ansichten mit ← / → Buttons pro Diff-Block
+  - `←` übernimmt B-Version in Ergebnis A; `→` übernimmt A-Version in Ergebnis B
+  - Beide Richtungen unabhängig voneinander wählbar, Toggle durch erneutes Klicken
+  - Aktiver Button bleibt hervorgehoben (blau), Quellzeile erhält gestrichelten Rahmen
+- Merge-Ergebnis-Bereich unterhalb der Diff-Ansicht (ein-/ausklappbar)
+  - Zeigt „Ergebnis A" und „Ergebnis B" nebeneinander
+  - Übernommene Zeilen sind hellblau hinterlegt
+  - Statuszeile zeigt Anzahl aktiver Übernahmen
+- Kopieren-Button: übergibt den jeweiligen Ergebnis-Text an die Zwischenablage
+- Speichern-Button: lädt den Ergebnis-Text als Datei herunter (Dateiname: `merged_<original>`)
+
+---
+
 ## [0.2.0] – 2026-07-27
 
 ### Changed
