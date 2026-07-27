@@ -254,8 +254,10 @@
       flex-shrink: 0;
     }
 
+    /* position: relative macht den Container zum offsetParent seiner Zeilen —
+       nur dann ist row.offsetTop direkt als scrollTop verwendbar. */
     .pane-content {
-      overflow: auto; flex: 1;
+      overflow: auto; flex: 1; position: relative;
       font-family: 'Courier New', Courier, monospace;
       font-size: 0.84rem; line-height: 1.6;
     }
@@ -376,7 +378,7 @@
     .result-btn:hover { background: var(--btn-bg-h); }
 
     .result-content {
-      overflow: auto; flex: 1;
+      overflow: auto; flex: 1; position: relative;
       font-family: 'Courier New', Courier, monospace;
       font-size: 0.84rem; line-height: 1.6;
     }
@@ -555,7 +557,24 @@
   // ── State ─────────────────────────────────────────────────────────────────
   let diffGroups  = [];
   let currentDiff = -1;
-  let syncLocked  = false;
+  // Scroll-Sync: Wer zuletzt gescrollt hat, behält für kurze Zeit die Kontrolle.
+  // Ein einfaches Boolean reicht nicht — Scroll-Events feuern asynchron, das Flag
+  // wäre beim Eintreffen des Echo-Events längst wieder zurückgesetzt.
+  let scrollOwner     = null;
+  let scrollOwnerTime = 0;
+  const OWNER_HOLD_MS = 150;
+
+  function claimScroll(name) {
+    const now = performance.now();
+    if (scrollOwner !== name && now - scrollOwnerTime < OWNER_HOLD_MS) return false;
+    scrollOwner     = name;
+    scrollOwnerTime = now;
+    return true;
+  }
+
+  // Zuordnung zwischen Diff-Zeilen (op-Index) und Ergebnis-Zeilen
+  let opToLine = [];
+  let lineToOp = [];
   let allOps      = [];
   let lineMode    = false;
 
@@ -590,13 +609,12 @@
 
     const el = sa.children[rowIdx];
     if (el) {
-      const target = el.offsetTop - sa.clientHeight * 0.2;
-      syncLocked = true;
-      sa.scrollTop = Math.max(0, target);
-      sb.scrollTop = Math.max(0, target);
-      syncLocked = false;
+      const target = Math.max(0, el.offsetTop - sa.clientHeight * 0.2);
+      claimScroll('nav');
+      sa.scrollTop = target;
+      sb.scrollTop = target;
       updateMinimapViewport();
-      syncResultScroll(sa);
+      syncDiffToResult(sa);
     }
 
     updateNavUI();
@@ -610,17 +628,46 @@
     nextBtn.disabled = currentDiff >= diffGroups.length - 1;
   }
 
-  // ── Result scroll sync (proportional) ────────────────────────────────────
-  function syncResultScroll(source) {
-    const rc = document.getElementById('resultContent');
-    if (!rc) return;
+  // ── Scroll-Sync Diff ↔ Ergebnis (zeilengenau über opToLine/lineToOp) ─────
+  function resultOpen() {
     const ra = document.getElementById('resultArea');
-    if (!ra || !ra.classList.contains('open')) return;
-    const maxSrc = source.scrollHeight - source.clientHeight;
-    if (maxSrc <= 0) return;
-    syncLocked = true;
-    rc.scrollTop = (source.scrollTop / maxSrc) * Math.max(0, rc.scrollHeight - rc.clientHeight);
-    syncLocked = false;
+    return ra && ra.classList.contains('open');
+  }
+
+  // Index der Zeile, die bei Scroll-Position y oben steht (Binärsuche)
+  function findRowAt(container, y) {
+    const rows = container.children;
+    if (!rows.length) return 0;
+    let lo = 0, hi = rows.length - 1, best = 0;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (rows[mid].offsetTop <= y) { best = mid; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    return best;
+  }
+
+  function syncDiffToResult(source) {
+    const rc = document.getElementById('resultContent');
+    if (!rc || !resultOpen() || !rc.children.length) return;
+    const i      = findRowAt(source, source.scrollTop);
+    const offset = source.scrollTop - source.children[i].offsetTop;
+    const target = rc.children[Math.min(rc.children.length - 1, opToLine[i] ?? 0)];
+    if (target) rc.scrollTop = Math.max(0, target.offsetTop + offset);
+  }
+
+  function syncResultToDiff(rc) {
+    const sa = document.getElementById('scrollA');
+    const sb = document.getElementById('scrollB');
+    if (!sa || !rc.children.length) return;
+    const li     = findRowAt(rc, rc.scrollTop);
+    const offset = rc.scrollTop - rc.children[li].offsetTop;
+    const rowA   = sa.children[Math.min(sa.children.length - 1, lineToOp[li] ?? 0)];
+    if (!rowA) return;
+    const target = Math.max(0, rowA.offsetTop + offset);
+    sa.scrollTop = target;
+    sb.scrollTop = target;
+    updateMinimapViewport();
   }
 
   // ── Minimap ───────────────────────────────────────────────────────────────
@@ -765,16 +812,22 @@
   function computeResult() {
     const lines   = [];
     const diffIdx = new Set(); // alle Zeilen aus Diff-Positionen → hellblau
-    for (const op of allOps) {
-      if (op.type === 'equal') {
-        lines.push(op.textA);
-      } else if (op.choice === 'B') {
-        if (op.textB !== null) { diffIdx.add(lines.length); lines.push(op.textB); }
-      } else {
-        // null oder 'A': A-Version behalten
-        if (op.textA !== null) { diffIdx.add(lines.length); lines.push(op.textA); }
-      }
-    }
+    opToLine = [];
+    lineToOp = [];
+
+    allOps.forEach((op, oi) => {
+      // Ops ohne eigene Ergebnis-Zeile zeigen auf die nächste erzeugte Zeile
+      opToLine[oi] = lines.length;
+      let text = null;
+      if (op.type === 'equal')      text = op.textA;
+      else if (op.choice === 'B')   text = op.textB;
+      else                          text = op.textA;   // null oder 'A'
+      if (text === null) return;
+      if (op.type !== 'equal') diffIdx.add(lines.length);
+      lineToOp[lines.length] = oi;
+      lines.push(text);
+    });
+
     return { text: lines.join('\n'), lines, diffIdx };
   }
 
@@ -786,6 +839,12 @@
     document.getElementById('resultContent').innerHTML = r.lines.map((l, i) =>
       `<div class="line${r.diffIdx.has(i) ? ' diff-line' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
     ).join('');
+
+    // Nach dem Neuaufbau ist scrollTop 0 — Position aus den Diff-Panes
+    // wiederherstellen. claimScroll verhindert, dass das dabei entstehende
+    // Scroll-Event die Diff-Panes nach oben zieht.
+    const sa = document.getElementById('scrollA');
+    if (sa) { claimScroll('nav'); syncDiffToResult(sa); }
 
     const countB    = allOps.filter(o => o.choice === 'B').length;
     const countA    = allOps.filter(o => o.choice === 'A').length;
@@ -823,7 +882,7 @@
     document.getElementById('resultArea').classList.toggle('open');
     // Scroll-Position sofort angleichen wenn Panel geöffnet wird
     const sa = document.getElementById('scrollA');
-    if (sa) syncResultScroll(sa);
+    if (sa) { claimScroll('nav'); syncDiffToResult(sa); }
   });
 
   document.getElementById('copyBtn').addEventListener('click', () => {
@@ -921,35 +980,24 @@
     const sb = document.getElementById('scrollB');
 
     sa.addEventListener('scroll', () => {
-      if (syncLocked) return;
-      syncLocked = true;
+      if (!claimScroll('A')) return;
       sb.scrollTop = sa.scrollTop;
-      syncLocked = false;
       updateMinimapViewport();
-      syncResultScroll(sa);
-    });
-    sb.addEventListener('scroll', () => {
-      if (syncLocked) return;
-      syncLocked = true;
-      sa.scrollTop = sb.scrollTop;
-      syncLocked = false;
-      updateMinimapViewport();
-      syncResultScroll(sb);
+      syncDiffToResult(sa);
     });
 
-    // Scroll vom Merge-Ergebnis zurück auf Diff-Panes
-    document.getElementById('resultContent').addEventListener('scroll', () => {
-      if (syncLocked) return;
-      const rc = document.getElementById('resultContent');
-      const maxRc = rc.scrollHeight - rc.clientHeight;
-      if (maxRc <= 0) return;
-      const ratio = rc.scrollTop / maxRc;
-      syncLocked = true;
-      const maxSa = sa.scrollHeight - sa.clientHeight;
-      sa.scrollTop = ratio * maxSa;
-      sb.scrollTop = ratio * maxSa;
-      syncLocked = false;
+    sb.addEventListener('scroll', () => {
+      if (!claimScroll('B')) return;
+      sa.scrollTop = sb.scrollTop;
       updateMinimapViewport();
+      syncDiffToResult(sb);
+    });
+
+    // Scroll vom Merge-Ergebnis zurück auf die Diff-Panes
+    const rc = document.getElementById('resultContent');
+    rc.addEventListener('scroll', () => {
+      if (!claimScroll('R')) return;
+      syncResultToDiff(rc);
     });
 
     sa.addEventListener('click', e => {
@@ -975,7 +1023,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.3.3</span>
+  <span>v0.3.6</span>
 </footer>
 </body>
 </html>

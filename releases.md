@@ -5,6 +5,24 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.3.6] – 2026-07-27
+
+### Fixed
+- **Scroll-Positionen waren systematisch verschoben:** `offsetTop` liefert den Abstand zum `offsetParent`, nicht zum Scroll-Container. Da weder `.pane-content` noch `.result-content` positioniert waren, enthielten alle Werte den Abstand vom Seitenanfang — je Bereich ein anderer Sockel (Diff-Pane 186 px, Ergebnis 712 px). Beide Container sind jetzt `position: relative`, womit `offsetTop` direkt als `scrollTop` verwendbar ist. Betraf auch die Vor/Zurück-Navigation, die dadurch am Ziel vorbeisprang
+- **Scroll-Sync erstarrte bei geöffnetem Merge-Bereich:** Das `syncLocked`-Boolean wurde synchron wieder auf `false` gesetzt, Scroll-Events feuern aber asynchron — das Flag war beim Eintreffen des Echo-Events längst zurückgesetzt. Ersetzt durch ein Owner-Prinzip: wer zuletzt gescrollt hat, behält die Kontrolle für 150 ms
+- **Sync ist jetzt zeilengenau** statt proportional — Zuordnung über `opToLine`/`lineToOp`, sodass Diff-Panes und Ergebnis bei abweichender Zeilenzahl dieselbe Textstelle zeigen
+- **Merge-Ergebnis sprang beim A/B-Klick nach oben:** Der Neuaufbau per `innerHTML` setzt `scrollTop` auf 0; die Position wird nun aus den Diff-Panes wiederhergestellt
+
+---
+
+## [0.3.5] – 2026-07-27
+
+### Changed
+- Theme folgt beim Laden der System-/Browser-Einstellung (`prefers-color-scheme`) statt fest auf Dark zu starten; gesetzt im `<head>`, daher kein Aufblitzen beim Laden
+- Theme-Umschalter zeigt das aktive Theme an, nicht mehr das Wechselziel
+
+---
+
 ## [0.3.4] – 2026-07-27
 
 ### Fixed
