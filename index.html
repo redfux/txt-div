@@ -95,8 +95,7 @@
     }
 
     .toggle-track {
-      width: 36px;
-      height: 20px;
+      width: 36px; height: 20px;
       border-radius: 10px;
       background: var(--btn-bg);
       border: 1px solid var(--border);
@@ -146,11 +145,8 @@
     .file-btn { position: relative; display: inline-block; }
 
     .file-btn input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%;
     }
 
     .file-btn span {
@@ -162,9 +158,7 @@
       font-size: 0.88rem;
       cursor: pointer;
       transition: background 0.2s;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       max-width: 300px;
       color: var(--text);
     }
@@ -174,14 +168,9 @@
     .compare-btn {
       padding: 8px 22px;
       background: var(--accent);
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-size: 0.92rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-      white-space: nowrap;
+      border: none; border-radius: 6px;
+      color: white; font-size: 0.92rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s; white-space: nowrap;
     }
 
     .compare-btn:hover { background: var(--accent-h); }
@@ -206,31 +195,29 @@
       background: var(--btn-bg);
       border: 1px solid var(--border);
       border-radius: 5px;
-      color: var(--text);
-      font-size: 0.82rem;
-      cursor: pointer;
-      transition: background 0.15s;
-      line-height: 1.4;
+      color: var(--text); font-size: 0.82rem;
+      cursor: pointer; transition: background 0.15s; line-height: 1.4;
     }
 
     .nav-btn:hover { background: var(--btn-bg-h); }
     .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+    .nav-btn.active-mode {
+      background: rgba(50,150,255,0.25);
+      border-color: #3296ff;
+      color: #80c0ff;
+    }
+
     .nav-counter {
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      min-width: 60px;
-      text-align: center;
+      font-size: 0.8rem; color: var(--text-dim);
+      min-width: 60px; text-align: center;
     }
 
     .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
 
     .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.82rem;
-      color: var(--text-dim);
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.82rem; color: var(--text-dim);
     }
 
     .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
@@ -241,24 +228,14 @@
 
     /* ── Main Layout ─────────────────────────────────────────────────────── */
     .diff-wrapper {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-      min-height: 0;
+      display: flex; flex: 1; overflow: hidden; min-height: 0;
     }
 
-    .diff-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    .diff-container { display: flex; flex: 1; overflow: hidden; }
 
     .diff-pane {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border-right: 1px solid var(--border);
+      flex: 1; display: flex; flex-direction: column;
+      overflow: hidden; border-right: 1px solid var(--border);
     }
 
     .diff-pane:last-child { border-right: none; }
@@ -266,55 +243,38 @@
     .pane-header {
       padding: 6px 14px;
       background: var(--btn-bg);
-      font-size: 0.78rem;
-      color: var(--text-hdr);
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      font-size: 0.78rem; color: var(--text-hdr);
+      font-weight: 600; letter-spacing: 0.04em;
+      display: flex; align-items: center; justify-content: space-between;
       flex-shrink: 0;
     }
 
     .pane-content {
-      overflow: auto;
-      flex: 1;
+      overflow: auto; flex: 1;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.84rem;
-      line-height: 1.6;
+      font-size: 0.84rem; line-height: 1.6;
     }
 
     .line {
-      display: flex;
-      min-height: 1.6em;
+      display: flex; min-height: 1.6em;
       border-bottom: 1px solid var(--line-border);
     }
 
     .line.current-diff {
-      outline: 2px solid var(--accent);
-      outline-offset: -2px;
-      z-index: 1;
-      position: relative;
+      outline: 2px solid var(--accent); outline-offset: -2px;
+      z-index: 1; position: relative;
     }
 
     .line-num {
-      min-width: 44px;
-      padding: 0 8px;
-      text-align: right;
-      color: var(--text-num);
-      background: var(--bg3);
-      user-select: none;
-      border-right: 1px solid var(--border2);
-      font-size: 0.76rem;
-      line-height: 1.6;
-      flex-shrink: 0;
+      min-width: 44px; padding: 0 8px; text-align: right;
+      color: var(--text-num); background: var(--bg3);
+      user-select: none; border-right: 1px solid var(--border2);
+      font-size: 0.76rem; line-height: 1.6; flex-shrink: 0;
     }
 
     .line-text {
-      padding: 0 12px;
-      white-space: pre-wrap;
-      word-break: break-all;
-      flex: 1;
+      padding: 0 12px; white-space: pre-wrap;
+      word-break: break-all; flex: 1;
     }
 
     .line.added   .line-text { background: rgba(50,180,80,.15); }
@@ -326,145 +286,109 @@
     mark.removed { background: rgba(220,60,60,.5);  border-radius: 2px; color: inherit; }
     mark.changed { background: rgba(220,140,30,.5); border-radius: 2px; color: inherit; }
 
-    /* ── Merge Button (inline in Diff-Zeile) ─────────────────────────────── */
+    /* ── Merge Buttons (inline, zwei pro Diff-Zeile) ─────────────────────── */
     .merge-cell {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 3px;
-      flex-shrink: 0;
-      width: 26px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 2px; padding: 0 3px; flex-shrink: 0; width: 48px;
     }
 
     .merge-btn {
-      width: 20px;
-      height: 20px;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      background: var(--btn-bg);
-      color: var(--text-dim);
-      font-size: 0.8rem;
-      cursor: pointer;
-      padding: 0;
-      line-height: 1;
+      width: 20px; height: 20px;
+      border: 1px solid var(--border); border-radius: 3px;
+      background: var(--btn-bg); color: var(--text-dim);
+      font-size: 0.72rem; font-weight: 700;
+      cursor: pointer; padding: 0; line-height: 1;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
 
     .merge-btn:hover { background: var(--btn-bg-h); color: var(--text); }
 
-    .merge-btn.active {
+    /* A-Button aktiv: rot/akzent = "A behalten" */
+    .merge-btn.btn-a.active {
+      background: rgba(233,69,96,0.3);
+      border-color: var(--accent);
+      color: #ff8099;
+    }
+
+    /* B-Button aktiv: blau = "B übernehmen" */
+    .merge-btn.btn-b.active {
       background: rgba(50,150,255,0.3);
       border-color: #3296ff;
       color: #80c0ff;
     }
 
-    .line.merge-source .line-text {
-      outline: 1px dashed rgba(50,150,255,0.5);
+    /* B-Zeile hervorgehoben wenn B gewählt */
+    .line.choice-b .line-text {
+      outline: 1px dashed rgba(50,150,255,0.6);
       outline-offset: -1px;
     }
 
     /* ── Result Area ─────────────────────────────────────────────────────── */
     .result-area {
-      flex-shrink: 0;
-      border-top: 2px solid var(--border);
+      flex-shrink: 0; border-top: 2px solid var(--border);
     }
 
     .result-toggle {
-      padding: 6px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      user-select: none;
-      font-size: 0.82rem;
-      color: var(--text-dim);
-      background: var(--nav-bg);
-      border-bottom: 1px solid transparent;
+      padding: 6px 16px; display: flex; align-items: center; gap: 8px;
+      cursor: pointer; user-select: none;
+      font-size: 0.82rem; color: var(--text-dim);
+      background: var(--nav-bg); border-bottom: 1px solid transparent;
     }
 
     .result-toggle:hover { color: var(--text); }
 
-    .result-chevron {
-      display: inline-block;
-      transition: transform 0.18s;
-    }
+    .result-chevron { display: inline-block; transition: transform 0.18s; }
 
     .result-area.open .result-chevron { transform: rotate(90deg); }
     .result-area.open .result-toggle  { border-bottom-color: var(--border); }
 
-    .result-panels {
-      display: none;
-      height: 250px;
-    }
-
+    .result-panels { display: none; height: 250px; }
     .result-area.open .result-panels { display: flex; }
 
     .result-pane {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
     }
 
     .result-pane-header {
-      padding: 5px 12px;
-      background: var(--btn-bg);
-      font-size: 0.78rem;
-      color: var(--text-hdr);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-      gap: 8px;
+      padding: 5px 12px; background: var(--btn-bg);
+      font-size: 0.78rem; color: var(--text-hdr); font-weight: 600;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; gap: 8px;
     }
 
     .result-actions { display: flex; gap: 5px; }
 
     .result-btn {
-      padding: 2px 9px;
-      background: var(--btn-bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-size: 0.75rem;
-      cursor: pointer;
-      transition: background 0.15s;
+      padding: 2px 9px; background: var(--btn-bg);
+      border: 1px solid var(--border); border-radius: 4px;
+      color: var(--text); font-size: 0.75rem;
+      cursor: pointer; transition: background 0.15s;
     }
 
     .result-btn:hover { background: var(--btn-bg-h); }
 
     .result-content {
-      overflow: auto;
-      flex: 1;
+      overflow: auto; flex: 1;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.84rem;
-      line-height: 1.6;
+      font-size: 0.84rem; line-height: 1.6;
     }
 
-    .line.merged .line-text { background: rgba(50,150,255,0.18); }
+    /* Übernommene B-Zeilen hellblau, explizit behaltene A-Zeilen neutral */
+    .line.merged-b .line-text { background: rgba(50,150,255,0.18); }
 
     /* ── Minimap ─────────────────────────────────────────────────────────── */
     .minimap {
-      width: 20px;
-      background: var(--minimap-bg);
+      width: 20px; background: var(--minimap-bg);
       border-left: 1px solid var(--border);
-      position: relative;
-      flex-shrink: 0;
-      cursor: pointer;
-      overflow: hidden;
+      position: relative; flex-shrink: 0; cursor: pointer; overflow: hidden;
     }
 
     .minimap-track { position: absolute; inset: 0; }
 
     .minimap-seg {
-      position: absolute;
-      left: 2px; right: 2px;
-      border-radius: 2px;
-      min-height: 2px;
+      position: absolute; left: 2px; right: 2px;
+      border-radius: 2px; min-height: 2px;
     }
 
     .minimap-seg.added   { background: rgba(50,180,80,.75); }
@@ -472,39 +396,26 @@
     .minimap-seg.removed { background: rgba(220,60,60,.75); }
 
     .minimap-viewport {
-      position: absolute;
-      left: 0; right: 0;
+      position: absolute; left: 0; right: 0;
       background: var(--minimap-cur);
       border: 1px solid rgba(128,128,200,0.3);
-      border-radius: 2px;
-      pointer-events: none;
-      transition: top 0.05s;
+      border-radius: 2px; pointer-events: none; transition: top 0.05s;
     }
 
     /* ── Placeholder ─────────────────────────────────────────────────────── */
     .placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      color: var(--ph-col);
-      font-size: 1rem;
-      text-align: center;
-      padding: 40px;
+      display: flex; align-items: center; justify-content: center;
+      flex: 1; color: var(--ph-col); font-size: 1rem;
+      text-align: center; padding: 40px;
     }
 
     .stats { font-size: 0.76rem; color: var(--stats-col); }
 
     /* ── Footer ──────────────────────────────────────────────────────────── */
     footer {
-      background: var(--bg2);
-      border-top: 1px solid var(--border);
-      padding: 5px 20px;
-      font-size: 0.72rem;
-      color: var(--text-dim);
-      display: flex;
-      justify-content: space-between;
-      flex-shrink: 0;
+      background: var(--bg2); border-top: 1px solid var(--border);
+      padding: 5px 20px; font-size: 0.72rem; color: var(--text-dim);
+      display: flex; justify-content: space-between; flex-shrink: 0;
     }
   </style>
 </head>
@@ -539,12 +450,16 @@
   <button class="compare-btn" id="compareBtn" disabled>Vergleichen</button>
 </div>
 
-<!-- Toolbar: Navigation + Legende -->
+<!-- Toolbar: Navigation + Auswahl-Modus + Legende -->
 <div class="toolbar">
   <div class="nav-group">
     <button class="nav-btn" id="prevBtn" disabled title="Vorheriger Unterschied">&#8593; Zurück</button>
     <span class="nav-counter" id="navCounter">–</span>
     <button class="nav-btn" id="nextBtn" disabled title="Nächster Unterschied">Weiter &#8595;</button>
+  </div>
+  <div class="nav-group">
+    <span style="font-size:0.8rem;color:var(--text-dim)">Auswahl:</span>
+    <button class="nav-btn" id="modeBtn" title="Zwischen Zeilen- und Blockauswahl wechseln">Blockweise</button>
   </div>
   <div class="legend">
     <div class="legend-item"><div class="legend-dot dot-added"></div> Hinzugefügt</div>
@@ -622,14 +537,22 @@
   btn.addEventListener('click', () => compare(contentA, contentB));
 
   // ── State ─────────────────────────────────────────────────────────────────
-  let diffGroups  = [];
+  let diffGroups  = [];   // [{rowIndex, type}] – für Navigation
   let currentDiff = -1;
   let syncLocked  = false;
-  let allOps      = [];
+  let allOps      = [];   // op.choice = null | 'A' | 'B'
+  let lineMode    = false; // false = Blockauswahl, true = Zeilenauswahl
 
   const prevBtn    = document.getElementById('prevBtn');
   const nextBtn    = document.getElementById('nextBtn');
   const navCounter = document.getElementById('navCounter');
+  const modeBtn    = document.getElementById('modeBtn');
+
+  modeBtn.addEventListener('click', () => {
+    lineMode = !lineMode;
+    modeBtn.textContent = lineMode ? 'Zeilenweise' : 'Blockweise';
+    modeBtn.classList.toggle('active-mode', lineMode);
+  });
 
   prevBtn.addEventListener('click', () => jumpTo(currentDiff - 1));
   nextBtn.addEventListener('click', () => jumpTo(currentDiff + 1));
@@ -796,23 +719,36 @@
   }
 
   // ── Merge helpers ─────────────────────────────────────────────────────────
-  // Basis ist immer A; ← übernimmt die B-Version in das Ergebnis
+  // op.choice: null (undecided → A), 'A' (explizit A), 'B' (B übernehmen)
+
+  function setChoice(opIdx, choice) {
+    const op = allOps[opIdx];
+    if (!op || op.type === 'equal') return;
+    // Toggle: gleiche Wahl nochmal → zurück auf null
+    op.choice = op.choice === choice ? null : choice;
+    if (!lineMode) {
+      // Blockauswahl: alle Ops derselben Gruppe synchronisieren
+      allOps.forEach((o, i) => {
+        if (i !== opIdx && o.groupIdx === op.groupIdx && o.type !== 'equal')
+          o.choice = op.choice;
+      });
+    }
+    updateMergeHighlights();
+  }
+
   function computeResult() {
     const lines = [];
     const mergedIdx = new Set();
     for (const op of allOps) {
-      const g        = op.groupIdx >= 0 ? diffGroups[op.groupIdx] : null;
-      const accepted = g && g.mergeToA;
       if (op.type === 'equal') {
         lines.push(op.textA);
-      } else if (accepted) {
-        // B-Version übernehmen
+      } else if (op.choice === 'B') {
         if (op.textB !== null) { mergedIdx.add(lines.length); lines.push(op.textB); }
-        // textB === null bedeutet: B hat die Zeile gelöscht → aus Ergebnis entfernen
+        // textB === null: B hat die Zeile gelöscht → entfernen
       } else {
-        // A-Version behalten
+        // null oder 'A': A-Version behalten
         if (op.textA !== null) lines.push(op.textA);
-        // textA === null bedeutet: Zeile nur in B, nicht übernommen → weglassen
+        // textA === null: Zeile nur in B, nicht übernommen → weglassen
       }
     }
     return { text: lines.join('\n'), lines, mergedIdx };
@@ -824,13 +760,17 @@
 
     const r = computeResult();
     document.getElementById('resultContent').innerHTML = r.lines.map((l, i) =>
-      `<div class="line${r.mergedIdx.has(i) ? ' merged' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
+      `<div class="line${r.mergedIdx.has(i) ? ' merged-b' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
     ).join('');
 
-    const count = diffGroups.filter(g => g.mergeToA).length;
-    document.getElementById('resultHint').textContent = count
-      ? `${count} Änderung${count !== 1 ? 'en' : ''} übernommen`
-      : 'keine Übernahmen aktiv';
+    const countB   = allOps.filter(o => o.choice === 'B').length;
+    const countA   = allOps.filter(o => o.choice === 'A').length;
+    const countOpen = allOps.filter(o => o.type !== 'equal' && o.choice === null).length;
+    const parts = [];
+    if (countB)    parts.push(`${countB}× B`);
+    if (countA)    parts.push(`${countA}× A`);
+    if (countOpen) parts.push(`${countOpen} offen`);
+    document.getElementById('resultHint').textContent = parts.join(' · ') || '–';
   }
 
   function updateMergeHighlights() {
@@ -839,17 +779,19 @@
     if (!sa || !sb) return;
 
     // Buttons aktualisieren
-    document.querySelectorAll('.merge-btn').forEach(btn => {
-      const g = parseInt(btn.dataset.group);
-      if (diffGroups[g]) btn.classList.toggle('active', diffGroups[g].mergeToA);
+    sa.querySelectorAll('.merge-btn').forEach(btn => {
+      const opIdx  = parseInt(btn.dataset.op);
+      const choice = btn.dataset.choice;
+      const op     = allOps[opIdx];
+      if (!op) return;
+      btn.classList.toggle('active', op.choice === choice);
     });
 
-    // B-Zeilen hervorheben, die in das Ergebnis übernommen werden
+    // B-Zeilen hervorheben, wenn B gewählt
     for (let i = 0; i < allOps.length; i++) {
-      const op = allOps[i];
-      if (op.groupIdx < 0) continue;
+      const op   = allOps[i];
       const rowB = sb.children[i];
-      if (rowB) rowB.classList.toggle('merge-source', diffGroups[op.groupIdx].mergeToA);
+      if (rowB) rowB.classList.toggle('choice-b', op.choice === 'B');
     }
 
     renderResult();
@@ -884,7 +826,7 @@
     const linesA = textA.split('\n');
     const linesB = textB.split('\n');
     const ops    = diffLines(linesA, linesB);
-    allOps       = ops;
+    allOps = ops;
 
     let numA = 0, numB = 0;
     const stats     = {added: 0, removed: 0, changed: 0};
@@ -896,18 +838,18 @@
 
     for (let i = 0; i < ops.length; i++) {
       const op = ops[i];
+      op.choice = null;
 
       if (op.type !== 'equal' && !inDiffGroup) {
         groupIdx++;
-        newGroups.push({rowIndex: i, type: op.type, mergeToA: false});
+        newGroups.push({rowIndex: i, type: op.type});
         inDiffGroup = true;
       }
       if (op.type === 'equal') inDiffGroup = false;
       op.groupIdx = op.type !== 'equal' ? groupIdx : -1;
 
-      // Merge-Button für jede Nicht-Gleich-Zeile in Pane A
-      const mbtn = op.type !== 'equal'
-        ? `<span class="merge-cell"><button class="merge-btn" data-group="${groupIdx}" title="Änderung in Ergebnis übernehmen">&#8592;</button></span>`
+      const mCell = op.type !== 'equal'
+        ? `<span class="merge-cell"><button class="merge-btn btn-a" data-op="${i}" data-choice="A" title="A-Version behalten">A</button><button class="merge-btn btn-b" data-op="${i}" data-choice="B" title="B-Version übernehmen">B</button></span>`
         : `<span class="merge-cell"></span>`;
 
       if (op.type === 'equal') {
@@ -918,15 +860,15 @@
       } else if (op.type === 'changed') {
         numA++; numB++; stats.changed++;
         const [hA, hB] = charDiff(op.textA, op.textB);
-        leftRows.push (`<div class="line changed"><span class="line-num">${numA}</span><span class="line-text">${hA}</span>${mbtn}</div>`);
+        leftRows.push (`<div class="line changed"><span class="line-num">${numA}</span><span class="line-text">${hA}</span>${mCell}</div>`);
         rightRows.push(`<div class="line changed"><span class="line-num">${numB}</span><span class="line-text">${hB}</span></div>`);
       } else if (op.type === 'removed') {
         numA++; stats.removed++;
-        leftRows.push (`<div class="line removed"><span class="line-num">${numA}</span><span class="line-text">${escHtml(op.textA)}</span>${mbtn}</div>`);
+        leftRows.push (`<div class="line removed"><span class="line-num">${numA}</span><span class="line-text">${escHtml(op.textA)}</span>${mCell}</div>`);
         rightRows.push(`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span></div>`);
       } else {
         numB++; stats.added++;
-        leftRows.push (`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span>${mbtn}</div>`);
+        leftRows.push (`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span>${mCell}</div>`);
         rightRows.push(`<div class="line added"><span class="line-num">${numB}</span><span class="line-text">${escHtml(op.textB)}</span></div>`);
       }
     }
@@ -953,26 +895,19 @@
 
     sa.addEventListener('scroll', () => {
       if (syncLocked) return;
-      syncLocked = true;
-      sb.scrollTop = sa.scrollTop;
-      syncLocked = false;
-      updateMinimapViewport();
+      syncLocked = true; sb.scrollTop = sa.scrollTop;
+      syncLocked = false; updateMinimapViewport();
     });
     sb.addEventListener('scroll', () => {
       if (syncLocked) return;
-      syncLocked = true;
-      sa.scrollTop = sb.scrollTop;
-      syncLocked = false;
-      updateMinimapViewport();
+      syncLocked = true; sa.scrollTop = sb.scrollTop;
+      syncLocked = false; updateMinimapViewport();
     });
 
-    // Merge-Button Events (Delegation auf scrollA)
     sa.addEventListener('click', e => {
       const mbtn = e.target.closest('.merge-btn');
       if (!mbtn) return;
-      const g = parseInt(mbtn.dataset.group);
-      diffGroups[g].mergeToA = !diffGroups[g].mergeToA;
-      updateMergeHighlights();
+      setChoice(parseInt(mbtn.dataset.op), mbtn.dataset.choice);
     });
 
     minimapEl.style.display = 'block';
@@ -992,7 +927,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.3.1</span>
+  <span>v0.3.2</span>
 </footer>
 </body>
 </html>

@@ -5,6 +5,15 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.3.2] – 2026-07-27
+
+### Changed
+- Merge-Buttons: zwei explizite Buttons pro Diff-Zeile — `A` (behalten, rot hervorgehoben) und `B` (übernehmen, blau hervorgehoben); nochmaliges Klicken hebt die Wahl auf; Status null/A/B je Zeile
+- Auswahl-Modus: neuer Toggle-Button in der Toolbar wechselt zwischen **Blockweise** (Klick setzt alle Zeilen einer Gruppe) und **Zeilenweise** (Klick setzt nur die einzelne Zeile)
+- Statuszeile im Ergebnis-Bereich zeigt Anzahl B-Übernahmen, A-Beibehaltungen und offene Entscheidungen
+
+---
+
 ## [0.3.1] – 2026-07-27
 
 ### Fixed
