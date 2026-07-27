@@ -181,6 +181,21 @@
     .compare-btn:hover { background: var(--accent-h); }
     .compare-btn:disabled { background: var(--btn-bg); color: var(--text-dim); cursor: not-allowed; }
 
+    /* Tausch-Button zwischen den beiden Dateiauswahlen */
+    .swap-btn {
+      padding: 6px 12px;
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 1.05rem; line-height: 1.25;
+      cursor: pointer; transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .swap-btn:hover:not(:disabled) { background: var(--btn-bg-h); }
+    .swap-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
     /* ── Nav + Legend Bar ────────────────────────────────────────────────── */
     .toolbar {
       background: var(--nav-bg);
@@ -453,6 +468,7 @@
       <span id="labelA">Datei auswählen…</span>
     </div>
   </div>
+  <button class="swap-btn" id="swapBtn" title="Original und Vergleichsdatei tauschen" disabled>&#8644;</button>
   <div class="upload-group">
     <label>Datei B (Vergleich)</label>
     <div class="file-btn">
@@ -539,6 +555,14 @@
   const btn   = document.getElementById('compareBtn');
   let contentA = null, contentB = null;
 
+  const swapBtn  = document.getElementById('swapBtn');
+  const NO_FILE  = 'Datei auswählen…';
+
+  function updateFileButtons() {
+    btn.disabled     = !(contentA !== null && contentB !== null);
+    swapBtn.disabled = contentA === null && contentB === null;
+  }
+
   function readFile(input, labelEl, slot) {
     input.addEventListener('change', () => {
       const file = input.files[0];
@@ -548,7 +572,7 @@
       reader.onload = e => {
         if (slot === 'A') contentA = e.target.result;
         else              contentB = e.target.result;
-        btn.disabled = !(contentA !== null && contentB !== null);
+        updateFileButtons();
       };
       reader.readAsText(file, 'UTF-8');
     });
@@ -556,6 +580,23 @@
 
   readFile(fileA, document.getElementById('labelA'), 'A');
   readFile(fileB, document.getElementById('labelB'), 'B');
+
+  // Original und Vergleichsdatei tauschen. Bereits getroffene A/B-Entschei-
+  // dungen werden dabei verworfen: der LCS-Tie-Break ist nicht symmetrisch,
+  // diffLines(B,A) kann also anders gruppieren als diffLines(A,B) — eine
+  // Übernahme per Index würde Entscheidungen an falsche Zeilen hängen.
+  swapBtn.addEventListener('click', () => {
+    const la = document.getElementById('labelA');
+    const lb = document.getElementById('labelB');
+    [contentA, contentB]       = [contentB, contentA];
+    [la.textContent, lb.textContent] = [lb.textContent, la.textContent];
+    // Die File-Inputs selbst sind nicht beschreibbar; sie werden geleert,
+    // damit ein erneutes Auswählen derselben Datei wieder ein change-Event
+    // auslöst und nicht stumm bleibt.
+    fileA.value = ''; fileB.value = '';
+    updateFileButtons();
+    if (contentA !== null && contentB !== null) compare(contentA, contentB);
+  });
   btn.addEventListener('click', () => compare(contentA, contentB));
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -1079,7 +1120,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.3.7</span>
+  <span>v0.4.0</span>
 </footer>
 </body>
 </html>

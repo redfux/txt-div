@@ -19,6 +19,7 @@ Anforderungen und geplante Funktionen für txt-div.
 - Merge-Ergebnis-Bereich: aus-/einblendbar, eine Datei über volle Breite, B-Übernahmen hellblau hervorgehoben
 - Auswahl-Modus: Blockweise (ganze Diff-Gruppe) oder Zeilenweise (einzelne Zeile), umschaltbar in der Toolbar
 - Zeilentreue Darstellung: umgebrochene Zeilen halten beide Spalten auf gleicher Höhe; Umbruch an Wortgrenzen
+- Tausch-Button (⇄) zwischen den Dateiauswahlen: vertauscht Original und Vergleichsdatei und vergleicht sofort neu
 - Kopieren-Button und Speichern-Button für jedes Merge-Ergebnis
 
 ## Offen / Ideen

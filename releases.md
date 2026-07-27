@@ -5,6 +5,15 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.4.0] – 2026-07-27
+
+### Added
+- Doppelpfeil-Button (⇄) zwischen den beiden Dateiauswahlen tauscht Original und Vergleichsdatei; ist bereits ein Vergleich aktiv, wird er sofort neu berechnet
+  - Bereits getroffene A/B-Entscheidungen werden dabei verworfen: der Tie-Break im LCS ist nicht symmetrisch, `diffLines(B,A)` kann also anders gruppieren als `diffLines(A,B)` — eine Übernahme per Zeilenindex würde Entscheidungen an falsche Stellen hängen
+  - Der Button ist deaktiviert, solange keine Datei geladen ist
+
+---
+
 ## [0.3.7] – 2026-07-27
 
 ### Fixed
