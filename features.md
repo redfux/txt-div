@@ -14,7 +14,10 @@ Anforderungen und geplante Funktionen für txt-div.
 - Synchrones Scrollen beider Spalten
 - Dark Mode / Light Mode Umschalter
 - Lokale Verarbeitung – keine Daten verlassen den Browser
-- Unterstützte Formate: `.txt`, `.md`, `.json`, `.csv`, `.log`, `.xml`, `.html`, `.js`, `.ts`, `.css`, `.py`
+- Unterstützte Formate: alle Textdateien (`text/*`), u. a. `.txt`, `.md`, `.json`, `.csv`, `.log`, `.xml`, `.cfg`, `.config`, `.js`, `.ts`, `.css`, `.py`
+- Merge-Funktion: Übernahme einzelner Änderungen in beide Richtungen per ← / → Buttons
+- Merge-Ergebnis-Bereich: aus-/einblendbar, zeigt beide Ergebnis-Texte mit hellblauer Hervorhebung übernommener Zeilen
+- Kopieren-Button und Speichern-Button für jedes Merge-Ergebnis
 
 ## Offen / Ideen
 
