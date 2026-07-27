@@ -5,6 +5,13 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.3.4] – 2026-07-27
+
+### Fixed
+- Scroll-Sync funktioniert jetzt in beide Richtungen: Scrollen im Merge-Ergebnis bewegt auch die Diff-Panes
+
+---
+
 ## [0.3.3] – 2026-07-27
 
 ### Fixed
