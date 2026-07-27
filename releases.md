@@ -5,6 +5,14 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.3.1] – 2026-07-27
+
+### Fixed
+- Merge-Buttons sitzen jetzt direkt in der jeweiligen Diff-Zeile (Pane A) statt in einer separaten Spalte — garantiert pixelgenaue Ausrichtung auch bei umgebrochenen Zeilen
+- Merge-Ergebnis zeigt nur noch eine Datei (Basis: A), statt zwei — B-Änderungen werden selektiv per ← Button in das Ergebnis übernommen
+
+---
+
 ## [0.3.0] – 2026-07-27
 
 ### Added

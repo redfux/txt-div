@@ -107,10 +107,8 @@
 
     .toggle-thumb {
       position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 14px;
-      height: 14px;
+      top: 2px; left: 2px;
+      width: 14px; height: 14px;
       border-radius: 50%;
       background: var(--accent);
       transition: transform 0.2s;
@@ -145,10 +143,7 @@
       letter-spacing: 0.05em;
     }
 
-    .file-btn {
-      position: relative;
-      display: inline-block;
-    }
+    .file-btn { position: relative; display: inline-block; }
 
     .file-btn input[type="file"] {
       position: absolute;
@@ -204,11 +199,7 @@
       flex-wrap: wrap;
     }
 
-    .nav-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .nav-group { display: flex; align-items: center; gap: 6px; }
 
     .nav-btn {
       padding: 4px 12px;
@@ -232,12 +223,7 @@
       text-align: center;
     }
 
-    .legend {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-left: auto;
-    }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
 
     .legend-item {
       display: flex;
@@ -247,11 +233,7 @@
       color: var(--text-dim);
     }
 
-    .legend-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-    }
+    .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
 
     .dot-added   { background: rgba(50,180,80,.6);  border: 1px solid #32b450; }
     .dot-changed { background: rgba(220,140,30,.6); border: 1px solid #dc8c1e; }
@@ -344,36 +326,14 @@
     mark.removed { background: rgba(220,60,60,.5);  border-radius: 2px; color: inherit; }
     mark.changed { background: rgba(220,140,30,.5); border-radius: 2px; color: inherit; }
 
-    /* ── Merge Column ────────────────────────────────────────────────────── */
-    .merge-pane {
-      width: 52px;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-    }
-
-    .merge-pane .pane-header {
-      justify-content: center;
-      letter-spacing: 0;
-      font-size: 0.9rem;
-    }
-
-    .merge-scroll {
-      overflow: hidden;
-      flex: 1;
-      background: var(--bg3);
-    }
-
-    .merge-row {
+    /* ── Merge Button (inline in Diff-Zeile) ─────────────────────────────── */
+    .merge-cell {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 3px;
-      min-height: 1.6em;
-      border-bottom: 1px solid var(--line-border);
+      padding: 0 3px;
+      flex-shrink: 0;
+      width: 26px;
     }
 
     .merge-btn {
@@ -383,7 +343,7 @@
       border-radius: 3px;
       background: var(--btn-bg);
       color: var(--text-dim);
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       cursor: pointer;
       padding: 0;
       line-height: 1;
@@ -391,7 +351,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
     }
 
     .merge-btn:hover { background: var(--btn-bg-h); color: var(--text); }
@@ -403,7 +362,7 @@
     }
 
     .line.merge-source .line-text {
-      outline: 1px dashed rgba(50,150,255,0.55);
+      outline: 1px dashed rgba(50,150,255,0.5);
       outline-offset: -1px;
     }
 
@@ -447,11 +406,8 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      border-right: 1px solid var(--border);
       overflow: hidden;
     }
-
-    .result-pane:last-child { border-right: none; }
 
     .result-pane-header {
       padding: 5px 12px;
@@ -502,15 +458,11 @@
       overflow: hidden;
     }
 
-    .minimap-track {
-      position: absolute;
-      inset: 0;
-    }
+    .minimap-track { position: absolute; inset: 0; }
 
     .minimap-seg {
       position: absolute;
-      left: 2px;
-      right: 2px;
+      left: 2px; right: 2px;
       border-radius: 2px;
       min-height: 2px;
     }
@@ -521,8 +473,7 @@
 
     .minimap-viewport {
       position: absolute;
-      left: 0;
-      right: 0;
+      left: 0; right: 0;
       background: var(--minimap-cur);
       border: 1px solid rgba(128,128,200,0.3);
       border-radius: 2px;
@@ -623,23 +574,13 @@
   <div class="result-panels">
     <div class="result-pane">
       <div class="result-pane-header">
-        <span id="resultLabelA">Ergebnis A</span>
+        <span id="resultLabel">Ergebnis</span>
         <div class="result-actions">
-          <button class="result-btn" id="copyBtnA">Kopieren</button>
-          <button class="result-btn" id="saveBtnA">Speichern</button>
+          <button class="result-btn" id="copyBtn">Kopieren</button>
+          <button class="result-btn" id="saveBtn">Speichern</button>
         </div>
       </div>
-      <div class="result-content" id="resultContentA"></div>
-    </div>
-    <div class="result-pane">
-      <div class="result-pane-header">
-        <span id="resultLabelB">Ergebnis B</span>
-        <div class="result-actions">
-          <button class="result-btn" id="copyBtnB">Kopieren</button>
-          <button class="result-btn" id="saveBtnB">Speichern</button>
-        </div>
-      </div>
-      <div class="result-content" id="resultContentB"></div>
+      <div class="result-content" id="resultContent"></div>
     </div>
   </div>
 </div>
@@ -714,8 +655,6 @@
       syncLocked = true;
       sa.scrollTop = Math.max(0, target);
       sb.scrollTop = Math.max(0, target);
-      const sm = document.getElementById('scrollM');
-      if (sm) sm.scrollTop = Math.max(0, target);
       syncLocked = false;
       updateMinimapViewport();
     }
@@ -857,25 +796,23 @@
   }
 
   // ── Merge helpers ─────────────────────────────────────────────────────────
-  function computeResult(side) {
+  // Basis ist immer A; ← übernimmt die B-Version in das Ergebnis
+  function computeResult() {
     const lines = [];
     const mergedIdx = new Set();
     for (const op of allOps) {
-      const g = op.groupIdx >= 0 ? diffGroups[op.groupIdx] : null;
+      const g        = op.groupIdx >= 0 ? diffGroups[op.groupIdx] : null;
+      const accepted = g && g.mergeToA;
       if (op.type === 'equal') {
         lines.push(op.textA);
-      } else if (side === 'A') {
-        if (g && g.mergeToA) {
-          if (op.textB !== null) { mergedIdx.add(lines.length); lines.push(op.textB); }
-        } else {
-          if (op.textA !== null) lines.push(op.textA);
-        }
+      } else if (accepted) {
+        // B-Version übernehmen
+        if (op.textB !== null) { mergedIdx.add(lines.length); lines.push(op.textB); }
+        // textB === null bedeutet: B hat die Zeile gelöscht → aus Ergebnis entfernen
       } else {
-        if (g && g.mergeToB) {
-          if (op.textA !== null) { mergedIdx.add(lines.length); lines.push(op.textA); }
-        } else {
-          if (op.textB !== null) lines.push(op.textB);
-        }
+        // A-Version behalten
+        if (op.textA !== null) lines.push(op.textA);
+        // textA === null bedeutet: Zeile nur in B, nicht übernommen → weglassen
       }
     }
     return { text: lines.join('\n'), lines, mergedIdx };
@@ -883,28 +820,16 @@
 
   function renderResult() {
     const nameA = document.getElementById('labelA').textContent;
-    const nameB = document.getElementById('labelB').textContent;
-    document.getElementById('resultLabelA').textContent = `Ergebnis A: ${nameA}`;
-    document.getElementById('resultLabelB').textContent = `Ergebnis B: ${nameB}`;
+    document.getElementById('resultLabel').textContent = `Ergebnis (Basis: ${nameA})`;
 
-    const rA = computeResult('A');
-    const rB = computeResult('B');
-
-    document.getElementById('resultContentA').innerHTML = rA.lines.map((l, i) =>
-      `<div class="line${rA.mergedIdx.has(i) ? ' merged' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
+    const r = computeResult();
+    document.getElementById('resultContent').innerHTML = r.lines.map((l, i) =>
+      `<div class="line${r.mergedIdx.has(i) ? ' merged' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
     ).join('');
 
-    document.getElementById('resultContentB').innerHTML = rB.lines.map((l, i) =>
-      `<div class="line${rB.mergedIdx.has(i) ? ' merged' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
-    ).join('');
-
-    const countA = diffGroups.filter(g => g.mergeToA).length;
-    const countB = diffGroups.filter(g => g.mergeToB).length;
-    const parts = [];
-    if (countA) parts.push(`${countA} nach A`);
-    if (countB) parts.push(`${countB} nach B`);
-    document.getElementById('resultHint').textContent = parts.length
-      ? parts.join(', ') + ' übernommen'
+    const count = diffGroups.filter(g => g.mergeToA).length;
+    document.getElementById('resultHint').textContent = count
+      ? `${count} Änderung${count !== 1 ? 'en' : ''} übernommen`
       : 'keine Übernahmen aktiv';
   }
 
@@ -913,21 +838,18 @@
     const sb = document.getElementById('scrollB');
     if (!sa || !sb) return;
 
+    // Buttons aktualisieren
     document.querySelectorAll('.merge-btn').forEach(btn => {
-      const g   = parseInt(btn.dataset.group);
-      const grp = diffGroups[g];
-      if (!grp) return;
-      btn.classList.toggle('active', btn.dataset.dir === 'toA' ? grp.mergeToA : grp.mergeToB);
+      const g = parseInt(btn.dataset.group);
+      if (diffGroups[g]) btn.classList.toggle('active', diffGroups[g].mergeToA);
     });
 
+    // B-Zeilen hervorheben, die in das Ergebnis übernommen werden
     for (let i = 0; i < allOps.length; i++) {
-      const op  = allOps[i];
+      const op = allOps[i];
       if (op.groupIdx < 0) continue;
-      const grp = diffGroups[op.groupIdx];
-      const rowA = sa.children[i];
       const rowB = sb.children[i];
-      if (rowB) rowB.classList.toggle('merge-source', grp.mergeToA);
-      if (rowA) rowA.classList.toggle('merge-source', grp.mergeToB);
+      if (rowB) rowB.classList.toggle('merge-source', diffGroups[op.groupIdx].mergeToA);
     }
 
     renderResult();
@@ -938,12 +860,8 @@
     document.getElementById('resultArea').classList.toggle('open');
   });
 
-  document.getElementById('copyBtnA').addEventListener('click', () => {
-    navigator.clipboard.writeText(computeResult('A').text);
-  });
-
-  document.getElementById('copyBtnB').addEventListener('click', () => {
-    navigator.clipboard.writeText(computeResult('B').text);
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(computeResult().text);
   });
 
   function downloadText(text, filename) {
@@ -955,14 +873,10 @@
     URL.revokeObjectURL(url);
   }
 
-  document.getElementById('saveBtnA').addEventListener('click', () => {
+  document.getElementById('saveBtn').addEventListener('click', () => {
     const name = document.getElementById('labelA').textContent;
-    downloadText(computeResult('A').text, name !== 'Datei auswählen…' ? 'merged_' + name : 'ergebnis_a.txt');
-  });
-
-  document.getElementById('saveBtnB').addEventListener('click', () => {
-    const name = document.getElementById('labelB').textContent;
-    downloadText(computeResult('B').text, name !== 'Datei auswählen…' ? 'merged_' + name : 'ergebnis_b.txt');
+    downloadText(computeResult().text,
+      name !== 'Datei auswählen…' ? 'merged_' + name : 'ergebnis.txt');
   });
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -973,47 +887,47 @@
     allOps       = ops;
 
     let numA = 0, numB = 0;
-    const stats      = {added: 0, removed: 0, changed: 0};
-    const leftRows   = [];
-    const rightRows  = [];
-    const mergeRows  = [];
-    const newGroups  = [];
-    let inDiffGroup  = false;
-    let groupIdx     = -1;
+    const stats     = {added: 0, removed: 0, changed: 0};
+    const leftRows  = [];
+    const rightRows = [];
+    const newGroups = [];
+    let inDiffGroup = false;
+    let groupIdx    = -1;
 
     for (let i = 0; i < ops.length; i++) {
       const op = ops[i];
 
       if (op.type !== 'equal' && !inDiffGroup) {
         groupIdx++;
-        newGroups.push({rowIndex: i, type: op.type, mergeToA: false, mergeToB: false});
+        newGroups.push({rowIndex: i, type: op.type, mergeToA: false});
         inDiffGroup = true;
       }
       if (op.type === 'equal') inDiffGroup = false;
       op.groupIdx = op.type !== 'equal' ? groupIdx : -1;
 
+      // Merge-Button für jede Nicht-Gleich-Zeile in Pane A
+      const mbtn = op.type !== 'equal'
+        ? `<span class="merge-cell"><button class="merge-btn" data-group="${groupIdx}" title="Änderung in Ergebnis übernehmen">&#8592;</button></span>`
+        : `<span class="merge-cell"></span>`;
+
       if (op.type === 'equal') {
         numA++; numB++;
         const t = escHtml(op.textA);
-        leftRows.push (`<div class="line"><span class="line-num">${numA}</span><span class="line-text">${t}</span></div>`);
+        leftRows.push (`<div class="line"><span class="line-num">${numA}</span><span class="line-text">${t}</span><span class="merge-cell"></span></div>`);
         rightRows.push(`<div class="line"><span class="line-num">${numB}</span><span class="line-text">${t}</span></div>`);
-        mergeRows.push(`<div class="merge-row"></div>`);
       } else if (op.type === 'changed') {
         numA++; numB++; stats.changed++;
         const [hA, hB] = charDiff(op.textA, op.textB);
-        leftRows.push (`<div class="line changed"><span class="line-num">${numA}</span><span class="line-text">${hA}</span></div>`);
+        leftRows.push (`<div class="line changed"><span class="line-num">${numA}</span><span class="line-text">${hA}</span>${mbtn}</div>`);
         rightRows.push(`<div class="line changed"><span class="line-num">${numB}</span><span class="line-text">${hB}</span></div>`);
-        mergeRows.push(`<div class="merge-row"><button class="merge-btn" data-group="${groupIdx}" data-dir="toA" title="B-Version in Ergebnis A übernehmen">&#8592;</button><button class="merge-btn" data-group="${groupIdx}" data-dir="toB" title="A-Version in Ergebnis B übernehmen">&#8594;</button></div>`);
       } else if (op.type === 'removed') {
         numA++; stats.removed++;
-        leftRows.push (`<div class="line removed"><span class="line-num">${numA}</span><span class="line-text">${escHtml(op.textA)}</span></div>`);
+        leftRows.push (`<div class="line removed"><span class="line-num">${numA}</span><span class="line-text">${escHtml(op.textA)}</span>${mbtn}</div>`);
         rightRows.push(`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span></div>`);
-        mergeRows.push(`<div class="merge-row"><button class="merge-btn" data-group="${groupIdx}" data-dir="toA" title="Zeile in Ergebnis A entfernen">&#8592;</button><button class="merge-btn" data-group="${groupIdx}" data-dir="toB" title="Zeile in Ergebnis B einfügen">&#8594;</button></div>`);
       } else {
         numB++; stats.added++;
-        leftRows.push (`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span></div>`);
+        leftRows.push (`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span>${mbtn}</div>`);
         rightRows.push(`<div class="line added"><span class="line-num">${numB}</span><span class="line-text">${escHtml(op.textB)}</span></div>`);
-        mergeRows.push(`<div class="merge-row"><button class="merge-btn" data-group="${groupIdx}" data-dir="toA" title="Zeile in Ergebnis A einfügen">&#8592;</button><button class="merge-btn" data-group="${groupIdx}" data-dir="toB" title="Zeile in Ergebnis B entfernen">&#8594;</button></div>`);
       }
     }
 
@@ -1029,38 +943,35 @@
         <div class="pane-header"><span>A: ${escHtml(nameA)}</span>${statsHtml}</div>
         <div class="pane-content" id="scrollA">${leftRows.join('')}</div>
       </div>
-      <div class="merge-pane">
-        <div class="pane-header">&#8644;</div>
-        <div class="merge-scroll" id="scrollM">${mergeRows.join('')}</div>
-      </div>
       <div class="diff-pane">
-        <div class="pane-header"><span>B: ${escHtml(nameB)}</span>${statsHtml}</div>
+        <div class="pane-header"><span>B: ${escHtml(nameB)}</span></div>
         <div class="pane-content" id="scrollB">${rightRows.join('')}</div>
       </div>`;
 
     const sa = document.getElementById('scrollA');
     const sb = document.getElementById('scrollB');
-    const sm = document.getElementById('scrollM');
 
-    function syncTo(source, ...targets) {
-      source.addEventListener('scroll', () => {
-        if (syncLocked) return;
-        syncLocked = true;
-        targets.forEach(t => { t.scrollTop = source.scrollTop; });
-        syncLocked = false;
-        updateMinimapViewport();
-      });
-    }
-    syncTo(sa, sb, sm);
-    syncTo(sb, sa, sm);
+    sa.addEventListener('scroll', () => {
+      if (syncLocked) return;
+      syncLocked = true;
+      sb.scrollTop = sa.scrollTop;
+      syncLocked = false;
+      updateMinimapViewport();
+    });
+    sb.addEventListener('scroll', () => {
+      if (syncLocked) return;
+      syncLocked = true;
+      sa.scrollTop = sb.scrollTop;
+      syncLocked = false;
+      updateMinimapViewport();
+    });
 
-    sm.addEventListener('click', e => {
+    // Merge-Button Events (Delegation auf scrollA)
+    sa.addEventListener('click', e => {
       const mbtn = e.target.closest('.merge-btn');
       if (!mbtn) return;
-      const g   = parseInt(mbtn.dataset.group);
-      const dir = mbtn.dataset.dir;
-      if (dir === 'toA') diffGroups[g].mergeToA = !diffGroups[g].mergeToA;
-      else                diffGroups[g].mergeToB = !diffGroups[g].mergeToB;
+      const g = parseInt(mbtn.dataset.group);
+      diffGroups[g].mergeToA = !diffGroups[g].mergeToA;
       updateMergeHighlights();
     });
 
@@ -1081,7 +992,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.3.0</span>
+  <span>v0.3.1</span>
 </footer>
 </body>
 </html>
