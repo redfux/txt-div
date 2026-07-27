@@ -255,6 +255,10 @@
       font-size: 0.84rem; line-height: 1.6;
     }
 
+    /* Jede Zeile in beiden Panes hat denselben Aufbau:
+       line-num | line-text | merge-cell (48 px)
+       Das hält die Textbreite in beiden Panes identisch,
+       sodass Zeilenumbrüche gleich auftreten und Zeilen 1:1 fluchten. */
     .line {
       display: flex; min-height: 1.6em;
       border-bottom: 1px solid var(--line-border);
@@ -286,10 +290,11 @@
     mark.removed { background: rgba(220,60,60,.5);  border-radius: 2px; color: inherit; }
     mark.changed { background: rgba(220,140,30,.5); border-radius: 2px; color: inherit; }
 
-    /* ── Merge Buttons (inline, zwei pro Diff-Zeile) ─────────────────────── */
+    /* ── Merge-Cell (rechts in jeder Zeile beider Panes) ─────────────────── */
     .merge-cell {
-      display: flex; align-items: center; justify-content: center;
-      gap: 2px; padding: 0 3px; flex-shrink: 0; width: 48px;
+      width: 48px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; gap: 2px;
+      padding: 0 3px;
     }
 
     .merge-btn {
@@ -304,21 +309,18 @@
 
     .merge-btn:hover { background: var(--btn-bg-h); color: var(--text); }
 
-    /* A-Button aktiv: rot/akzent = "A behalten" */
     .merge-btn.btn-a.active {
       background: rgba(233,69,96,0.3);
       border-color: var(--accent);
       color: #ff8099;
     }
 
-    /* B-Button aktiv: blau = "B übernehmen" */
     .merge-btn.btn-b.active {
       background: rgba(50,150,255,0.3);
       border-color: #3296ff;
       color: #80c0ff;
     }
 
-    /* B-Zeile hervorgehoben wenn B gewählt */
     .line.choice-b .line-text {
       outline: 1px dashed rgba(50,150,255,0.6);
       outline-offset: -1px;
@@ -374,8 +376,8 @@
       font-size: 0.84rem; line-height: 1.6;
     }
 
-    /* Übernommene B-Zeilen hellblau, explizit behaltene A-Zeilen neutral */
-    .line.merged-b .line-text { background: rgba(50,150,255,0.18); }
+    /* Alle Zeilen aus Diff-Positionen hellblau, egal ob A oder B gewählt */
+    .line.diff-line .line-text { background: rgba(50,150,255,0.18); }
 
     /* ── Minimap ─────────────────────────────────────────────────────────── */
     .minimap {
@@ -537,11 +539,11 @@
   btn.addEventListener('click', () => compare(contentA, contentB));
 
   // ── State ─────────────────────────────────────────────────────────────────
-  let diffGroups  = [];   // [{rowIndex, type}] – für Navigation
+  let diffGroups  = [];
   let currentDiff = -1;
   let syncLocked  = false;
-  let allOps      = [];   // op.choice = null | 'A' | 'B'
-  let lineMode    = false; // false = Blockauswahl, true = Zeilenauswahl
+  let allOps      = [];
+  let lineMode    = false;
 
   const prevBtn    = document.getElementById('prevBtn');
   const nextBtn    = document.getElementById('nextBtn');
@@ -580,6 +582,7 @@
       sb.scrollTop = Math.max(0, target);
       syncLocked = false;
       updateMinimapViewport();
+      syncResultScroll(sa);
     }
 
     updateNavUI();
@@ -591,6 +594,17 @@
       : '–';
     prevBtn.disabled = currentDiff <= 0;
     nextBtn.disabled = currentDiff >= diffGroups.length - 1;
+  }
+
+  // ── Result scroll sync (proportional) ────────────────────────────────────
+  function syncResultScroll(source) {
+    const rc = document.getElementById('resultContent');
+    if (!rc) return;
+    const ra = document.getElementById('resultArea');
+    if (!ra || !ra.classList.contains('open')) return;
+    const maxSrc = source.scrollHeight - source.clientHeight;
+    if (maxSrc <= 0) return;
+    rc.scrollTop = (source.scrollTop / maxSrc) * Math.max(0, rc.scrollHeight - rc.clientHeight);
   }
 
   // ── Minimap ───────────────────────────────────────────────────────────────
@@ -719,15 +733,11 @@
   }
 
   // ── Merge helpers ─────────────────────────────────────────────────────────
-  // op.choice: null (undecided → A), 'A' (explizit A), 'B' (B übernehmen)
-
   function setChoice(opIdx, choice) {
     const op = allOps[opIdx];
     if (!op || op.type === 'equal') return;
-    // Toggle: gleiche Wahl nochmal → zurück auf null
     op.choice = op.choice === choice ? null : choice;
     if (!lineMode) {
-      // Blockauswahl: alle Ops derselben Gruppe synchronisieren
       allOps.forEach((o, i) => {
         if (i !== opIdx && o.groupIdx === op.groupIdx && o.type !== 'equal')
           o.choice = op.choice;
@@ -737,21 +747,19 @@
   }
 
   function computeResult() {
-    const lines = [];
-    const mergedIdx = new Set();
+    const lines   = [];
+    const diffIdx = new Set(); // alle Zeilen aus Diff-Positionen → hellblau
     for (const op of allOps) {
       if (op.type === 'equal') {
         lines.push(op.textA);
       } else if (op.choice === 'B') {
-        if (op.textB !== null) { mergedIdx.add(lines.length); lines.push(op.textB); }
-        // textB === null: B hat die Zeile gelöscht → entfernen
+        if (op.textB !== null) { diffIdx.add(lines.length); lines.push(op.textB); }
       } else {
         // null oder 'A': A-Version behalten
-        if (op.textA !== null) lines.push(op.textA);
-        // textA === null: Zeile nur in B, nicht übernommen → weglassen
+        if (op.textA !== null) { diffIdx.add(lines.length); lines.push(op.textA); }
       }
     }
-    return { text: lines.join('\n'), lines, mergedIdx };
+    return { text: lines.join('\n'), lines, diffIdx };
   }
 
   function renderResult() {
@@ -760,11 +768,11 @@
 
     const r = computeResult();
     document.getElementById('resultContent').innerHTML = r.lines.map((l, i) =>
-      `<div class="line${r.mergedIdx.has(i) ? ' merged-b' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
+      `<div class="line${r.diffIdx.has(i) ? ' diff-line' : ''}"><span class="line-num">${i + 1}</span><span class="line-text">${escHtml(l)}</span></div>`
     ).join('');
 
-    const countB   = allOps.filter(o => o.choice === 'B').length;
-    const countA   = allOps.filter(o => o.choice === 'A').length;
+    const countB    = allOps.filter(o => o.choice === 'B').length;
+    const countA    = allOps.filter(o => o.choice === 'A').length;
     const countOpen = allOps.filter(o => o.type !== 'equal' && o.choice === null).length;
     const parts = [];
     if (countB)    parts.push(`${countB}× B`);
@@ -778,7 +786,6 @@
     const sb = document.getElementById('scrollB');
     if (!sa || !sb) return;
 
-    // Buttons aktualisieren
     sa.querySelectorAll('.merge-btn').forEach(btn => {
       const opIdx  = parseInt(btn.dataset.op);
       const choice = btn.dataset.choice;
@@ -787,11 +794,9 @@
       btn.classList.toggle('active', op.choice === choice);
     });
 
-    // B-Zeilen hervorheben, wenn B gewählt
     for (let i = 0; i < allOps.length; i++) {
-      const op   = allOps[i];
       const rowB = sb.children[i];
-      if (rowB) rowB.classList.toggle('choice-b', op.choice === 'B');
+      if (rowB) rowB.classList.toggle('choice-b', allOps[i].choice === 'B');
     }
 
     renderResult();
@@ -800,6 +805,9 @@
   // ── Result Area ───────────────────────────────────────────────────────────
   document.getElementById('resultToggle').addEventListener('click', () => {
     document.getElementById('resultArea').classList.toggle('open');
+    // Scroll-Position sofort angleichen wenn Panel geöffnet wird
+    const sa = document.getElementById('scrollA');
+    if (sa) syncResultScroll(sa);
   });
 
   document.getElementById('copyBtn').addEventListener('click', () => {
@@ -836,6 +844,9 @@
     let inDiffGroup = false;
     let groupIdx    = -1;
 
+    // Leere Merge-Cell für rechte Pane (gleiche Breite wie links → identische Textbreite)
+    const emptyCell = `<span class="merge-cell"></span>`;
+
     for (let i = 0; i < ops.length; i++) {
       const op = ops[i];
       op.choice = null;
@@ -850,26 +861,26 @@
 
       const mCell = op.type !== 'equal'
         ? `<span class="merge-cell"><button class="merge-btn btn-a" data-op="${i}" data-choice="A" title="A-Version behalten">A</button><button class="merge-btn btn-b" data-op="${i}" data-choice="B" title="B-Version übernehmen">B</button></span>`
-        : `<span class="merge-cell"></span>`;
+        : emptyCell;
 
       if (op.type === 'equal') {
         numA++; numB++;
         const t = escHtml(op.textA);
-        leftRows.push (`<div class="line"><span class="line-num">${numA}</span><span class="line-text">${t}</span><span class="merge-cell"></span></div>`);
-        rightRows.push(`<div class="line"><span class="line-num">${numB}</span><span class="line-text">${t}</span></div>`);
+        leftRows.push (`<div class="line"><span class="line-num">${numA}</span><span class="line-text">${t}</span>${emptyCell}</div>`);
+        rightRows.push(`<div class="line"><span class="line-num">${numB}</span><span class="line-text">${t}</span>${emptyCell}</div>`);
       } else if (op.type === 'changed') {
         numA++; numB++; stats.changed++;
         const [hA, hB] = charDiff(op.textA, op.textB);
         leftRows.push (`<div class="line changed"><span class="line-num">${numA}</span><span class="line-text">${hA}</span>${mCell}</div>`);
-        rightRows.push(`<div class="line changed"><span class="line-num">${numB}</span><span class="line-text">${hB}</span></div>`);
+        rightRows.push(`<div class="line changed"><span class="line-num">${numB}</span><span class="line-text">${hB}</span>${emptyCell}</div>`);
       } else if (op.type === 'removed') {
         numA++; stats.removed++;
         leftRows.push (`<div class="line removed"><span class="line-num">${numA}</span><span class="line-text">${escHtml(op.textA)}</span>${mCell}</div>`);
-        rightRows.push(`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span></div>`);
+        rightRows.push(`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span>${emptyCell}</div>`);
       } else {
         numB++; stats.added++;
         leftRows.push (`<div class="line empty"><span class="line-num"> </span><span class="line-text"> </span>${mCell}</div>`);
-        rightRows.push(`<div class="line added"><span class="line-num">${numB}</span><span class="line-text">${escHtml(op.textB)}</span></div>`);
+        rightRows.push(`<div class="line added"><span class="line-num">${numB}</span><span class="line-text">${escHtml(op.textB)}</span>${emptyCell}</div>`);
       }
     }
 
@@ -895,13 +906,19 @@
 
     sa.addEventListener('scroll', () => {
       if (syncLocked) return;
-      syncLocked = true; sb.scrollTop = sa.scrollTop;
-      syncLocked = false; updateMinimapViewport();
+      syncLocked = true;
+      sb.scrollTop = sa.scrollTop;
+      syncLocked = false;
+      updateMinimapViewport();
+      syncResultScroll(sa);
     });
     sb.addEventListener('scroll', () => {
       if (syncLocked) return;
-      syncLocked = true; sa.scrollTop = sb.scrollTop;
-      syncLocked = false; updateMinimapViewport();
+      syncLocked = true;
+      sa.scrollTop = sb.scrollTop;
+      syncLocked = false;
+      updateMinimapViewport();
+      syncResultScroll(sb);
     });
 
     sa.addEventListener('click', e => {
@@ -927,7 +944,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.3.2</span>
+  <span>v0.3.3</span>
 </footer>
 </body>
 </html>

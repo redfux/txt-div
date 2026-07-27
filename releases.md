@@ -5,6 +5,15 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.3.3] – 2026-07-27
+
+### Fixed
+- Merge-Ergebnis: alle Zeilen aus Diff-Positionen hellblau hinterlegt, unabhängig von A/B-Wahl
+- Merge-Ergebnis scrollt proportional mit den Diff-Panes (auch beim Navigieren per Vor/Zurück)
+- Beide Diff-Panes haben jetzt identische Textbreite durch gleichen 48px-Spacer rechts — Zeilenumbrüche entstehen an denselben Stellen, Zeilen fluchten 1:1
+
+---
+
 ## [0.3.2] – 2026-07-27
 
 ### Changed
