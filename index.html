@@ -147,7 +147,9 @@
       letter-spacing: 0.05em;
     }
 
-    .file-btn { position: relative; display: inline-block; }
+    /* block, damit das Feld die ganze Gruppenbreite einnimmt — sonst bliebe
+       rechts davon Leerraum und der Tausch-Button rückte an Datei B heran */
+    .file-btn { position: relative; display: block; }
 
     .file-btn input[type="file"] {
       position: absolute; inset: 0;
@@ -164,7 +166,6 @@
       cursor: pointer;
       transition: background 0.2s;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      max-width: 300px;
       color: var(--text);
     }
 
@@ -1120,7 +1121,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.4.0</span>
+  <span>v0.4.1</span>
 </footer>
 </body>
 </html>
