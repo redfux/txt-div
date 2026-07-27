@@ -5,6 +5,13 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.4.1] – 2026-07-27
+
+### Fixed
+- Tausch-Button saß nicht mittig, sondern direkt links neben Datei B: `max-width: 300px` begrenzte das Dateinamen-Feld, während die umgebende `.upload-group` per `flex: 1` auf ~512 px wuchs — der Leerraum entstand innerhalb der Gruppe A, rechts vom Feld. Feld ist jetzt `display: block` ohne `max-width` und füllt seine Gruppe; die Abstände links und rechts des Buttons betragen damit beide 12 px. Lange Dateinamen werden weiterhin per `text-overflow: ellipsis` abgeschnitten
+
+---
+
 ## [0.4.0] – 2026-07-27
 
 ### Added
