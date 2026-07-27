@@ -1,11 +1,16 @@
 <!-- thought up by human, created by ai -->
 <!DOCTYPE html>
-<html lang="de" data-theme="dark">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none';">
   <title>txt-div</title>
+  <script>
+    // System-Theme vor dem ersten Render setzen, verhindert Flash
+    document.documentElement.dataset.theme =
+      window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  </script>
   <style>
     /* ── CSS-Variablen: Dark/Light ───────────────────────────────────────── */
     :root {
@@ -505,11 +510,20 @@
 <script>
   // ── Theme ─────────────────────────────────────────────────────────────────
   const html = document.documentElement;
+
+  function applyThemeUI(theme) {
+    const isLight = theme === 'light';
+    document.getElementById('themeIcon').textContent  = isLight ? '🌙' : '☀️';
+    document.getElementById('themeLabel').textContent = isLight ? 'Dark' : 'Light';
+  }
+
+  // Toggle-Button sofort auf aktuelles (system-gesetztes) Theme anpassen
+  applyThemeUI(html.dataset.theme);
+
   document.getElementById('themeToggle').addEventListener('click', () => {
     const light = html.dataset.theme !== 'light';
     html.dataset.theme = light ? 'light' : 'dark';
-    document.getElementById('themeIcon').textContent  = light ? '🌙' : '☀️';
-    document.getElementById('themeLabel').textContent = light ? 'Dark' : 'Light';
+    applyThemeUI(html.dataset.theme);
     updateMinimapViewport();
   });
 
