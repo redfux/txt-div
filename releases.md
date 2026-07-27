@@ -5,6 +5,14 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.5.3] – 2026-07-27
+
+### Changed
+- Modus-Switch beidseitig beschriftet: „Auswahlmodus: Zeilenweise [Switch] Blockweise". Der Thumb wandert zur aktiven Seite, das aktive Label wird in der Akzentfarbe `#23a96a` und halbfett hervorgehoben
+- Die Zustandsklasse `.on` steht dadurch für *Blockweise* (Label rechts), nicht mehr für `lineMode` — Voreinstellung Blockweise zeigt den Thumb also rechts
+
+---
+
 ## [0.5.2] – 2026-07-27
 
 ### Changed
