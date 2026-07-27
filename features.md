@@ -18,6 +18,7 @@ Anforderungen und geplante Funktionen für txt-div.
 - Merge-Funktion: A/B-Buttons pro Diff-Zeile — explizite Drei-Zustands-Wahl (null/A/B), Basis immer A
 - Merge-Ergebnis-Bereich: aus-/einblendbar, eine Datei über volle Breite, B-Übernahmen hellblau hervorgehoben
 - Auswahl-Modus: Blockweise (ganze Diff-Gruppe) oder Zeilenweise (einzelne Zeile), umschaltbar in der Toolbar
+- Zeilentreue Darstellung: umgebrochene Zeilen halten beide Spalten auf gleicher Höhe; Umbruch an Wortgrenzen
 - Kopieren-Button und Speichern-Button für jedes Merge-Ergebnis
 
 ## Offen / Ideen
