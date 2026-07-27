@@ -5,6 +5,13 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.5.2] – 2026-07-27
+
+### Changed
+- Thumb der Toggle-Switches (Theme und Auswahl-Modus) ist jetzt grün `#23a96a` statt in der Akzentfarbe; als Variable `--switch` hinterlegt und in beiden Themes identisch
+
+---
+
 ## [0.5.1] – 2026-07-27
 
 ### Changed
