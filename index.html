@@ -283,9 +283,13 @@
       font-size: 0.76rem; line-height: 1.6; flex-shrink: 0;
     }
 
+    /* Umbruch bevorzugt an Leerzeichen; nur ein einzelnes zu langes Wort
+       wird mittendrin getrennt. min-width: 0 lässt das Flex-Kind schrumpfen,
+       damit der Umbruch überhaupt greift. */
     .line-text {
       padding: 0 12px; white-space: pre-wrap;
-      word-break: break-all; flex: 1;
+      overflow-wrap: anywhere; word-break: normal;
+      flex: 1; min-width: 0;
     }
 
     .line.added   .line-text { background: rgba(50,180,80,.15); }
@@ -575,6 +579,7 @@
   // Zuordnung zwischen Diff-Zeilen (op-Index) und Ergebnis-Zeilen
   let opToLine = [];
   let lineToOp = [];
+  let paneObserver = null;
   let allOps      = [];
   let lineMode    = false;
 
@@ -626,6 +631,49 @@
       : '–';
     prevBtn.disabled = currentDiff <= 0;
     nextBtn.disabled = currentDiff >= diffGroups.length - 1;
+  }
+
+  // ── Zeilenhöhen der beiden Panes angleichen ──────────────────────────────
+  // Bricht eine Zeile auf mehrere Bildschirmzeilen um, muss die Gegenzeile
+  // denselben Platz einnehmen — sonst laufen die Spalten auseinander.
+  // Betrifft Leerzeilen ohne Gegenstück ebenso wie geänderte Zeilen
+  // unterschiedlicher Länge.
+  function alignRowHeights() {
+    const sa = document.getElementById('scrollA');
+    const sb = document.getElementById('scrollB');
+    if (!sa || !sb) return;
+    const rowsA = sa.children, rowsB = sb.children;
+    const n = Math.min(rowsA.length, rowsB.length);
+
+    // Erst alle Overrides lösen, damit die natürliche Höhe messbar ist …
+    for (let i = 0; i < n; i++) {
+      rowsA[i].style.height = '';
+      rowsB[i].style.height = '';
+    }
+    // … dann in einem Durchgang messen …
+    const heights = new Array(n);
+    for (let i = 0; i < n; i++) {
+      heights[i] = Math.max(rowsA[i].offsetHeight, rowsB[i].offsetHeight);
+    }
+    // … und erst danach schreiben (hält es bei 2 Reflows statt 2n).
+    for (let i = 0; i < n; i++) {
+      rowsA[i].style.height = heights[i] + 'px';
+      rowsB[i].style.height = heights[i] + 'px';
+    }
+  }
+
+  // Breitenänderung ⇒ andere Umbruchpunkte ⇒ neu ausrichten
+  let alignPending = false;
+  function scheduleAlign() {
+    if (alignPending) return;
+    alignPending = true;
+    requestAnimationFrame(() => {
+      alignPending = false;
+      alignRowHeights();
+      const sa = document.getElementById('scrollA');
+      if (sa) { claimScroll('nav'); syncDiffToResult(sa); }
+      updateMinimapViewport();
+    });
   }
 
   // ── Scroll-Sync Diff ↔ Ergebnis (zeilengenau über opToLine/lineToOp) ─────
@@ -979,6 +1027,14 @@
     const sa = document.getElementById('scrollA');
     const sb = document.getElementById('scrollB');
 
+    // Höhen angleichen, bevor irgendetwas offsetTop ausliest
+    alignRowHeights();
+
+    // Bei Breitenänderung ändern sich die Umbruchpunkte
+    if (paneObserver) paneObserver.disconnect();
+    paneObserver = new ResizeObserver(scheduleAlign);
+    paneObserver.observe(sa);
+
     sa.addEventListener('scroll', () => {
       if (!claimScroll('A')) return;
       sb.scrollTop = sa.scrollTop;
@@ -1023,7 +1079,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.3.6</span>
+  <span>v0.3.7</span>
 </footer>
 </body>
 </html>

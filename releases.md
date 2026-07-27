@@ -5,6 +5,14 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.3.7] – 2026-07-27
+
+### Fixed
+- **Zeilenausrichtung bei Umbrüchen:** Brach eine Zeile auf mehrere Bildschirmzeilen um, behielt die Gegenzeile ihre einfache Höhe — Leerräume waren zu klein und die Spalten liefen auseinander. Die Höhen beider Panes werden jetzt paarweise angeglichen (`alignRowHeights`), gemessen und geschrieben in getrennten Durchgängen, damit es bei zwei Reflows bleibt. Ein `ResizeObserver` richtet nach Breitenänderungen neu aus, da sich dabei die Umbruchpunkte verschieben. Betrifft Leerzeilen ohne Gegenstück ebenso wie geänderte Zeilen unterschiedlicher Länge
+- **Umbruch mitten im Wort:** `word-break: break-all` trennte bedingungslos an jeder Stelle. Ersetzt durch `overflow-wrap: anywhere` mit `word-break: normal` — Umbruch erfolgt an Leerzeichen, ein einzelnes zu langes Wort wird weiterhin getrennt. `min-width: 0` stellt sicher, dass das Flex-Kind dafür schrumpfen darf
+
+---
+
 ## [0.3.6] – 2026-07-27
 
 ### Fixed
