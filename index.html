@@ -382,6 +382,20 @@
       flex-shrink: 0; border-top: 2px solid var(--border);
     }
 
+    /* Ziehgriff an der Oberkante — das Panel ist unten angedockt, nach oben
+       ziehen vergrößert es also. Nur im ausgeklappten Zustand nutzbar. */
+    .result-resizer {
+      display: none;
+      height: 6px; cursor: row-resize;
+      background: var(--nav-bg);
+      transition: background 0.15s;
+    }
+
+    .result-area.open .result-resizer { display: block; }
+
+    .result-resizer:hover,
+    .result-resizer.dragging { background: var(--accent); }
+
     .result-toggle {
       padding: 6px 16px; display: flex; align-items: center; gap: 8px;
       cursor: pointer; user-select: none;
@@ -537,6 +551,7 @@
 
 <!-- Merge-Ergebnis -->
 <div class="result-area" id="resultArea" style="display:none">
+  <div class="result-resizer" id="resultResizer" title="Höhe des Merge-Bereichs ziehen"></div>
   <div class="result-toggle" id="resultToggle">
     <span class="result-chevron">▶</span>
     <span>Merge-Ergebnis</span>
@@ -1054,6 +1069,47 @@
     if (sa) { claimScroll('nav'); syncDiffToResult(sa); }
   });
 
+  // Höhe des Merge-Bereichs ziehen. Nach oben ziehen vergrößert ihn; der
+  // Diff-Bereich behält mindestens MIN_DIFF_H, das Panel mindestens MIN_PANEL_H.
+  const resizer = document.getElementById('resultResizer');
+  const MIN_PANEL_H = 90;
+  const MIN_DIFF_H  = 120;
+
+  resizer.addEventListener('pointerdown', e => {
+    const panels  = document.querySelector('.result-panels');
+    const wrapper = document.querySelector('.diff-wrapper');
+    const startY  = e.clientY;
+    const startH  = panels.offsetHeight;
+    const maxH    = startH + Math.max(0, wrapper.offsetHeight - MIN_DIFF_H);
+
+    resizer.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+
+    const onMove = ev => {
+      const h = Math.min(maxH, Math.max(MIN_PANEL_H, startH + (startY - ev.clientY)));
+      panels.style.height = h + 'px';
+      updateMinimapViewport();
+    };
+
+    const onUp = () => {
+      resizer.classList.remove('dragging');
+      document.body.style.userSelect = '';
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      // Ergebnis wieder auf die Diff-Panes ausrichten
+      const sa = document.getElementById('scrollA');
+      if (sa) { claimScroll('nav'); syncDiffToResult(sa); }
+    };
+
+    // Auf window statt auf dem Griff: der Zeiger verlässt den 6 px schmalen
+    // Streifen beim Ziehen sofort, die Bewegung muss trotzdem ankommen.
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    e.preventDefault();
+  });
+
   document.getElementById('copyBtn').addEventListener('click', () => {
     navigator.clipboard.writeText(computeResult().text);
   });
@@ -1157,9 +1213,16 @@
     // Höhen angleichen, bevor irgendetwas offsetTop ausliest
     alignRowHeights();
 
-    // Bei Breitenänderung ändern sich die Umbruchpunkte
+    // Nur die Breite verschiebt die Umbruchpunkte. Höhenänderungen — etwa beim
+    // Ziehen des Merge-Bereichs — werden übersprungen, sonst liefe der
+    // Höhenausgleich bei jedem Frame des Drags.
     if (paneObserver) paneObserver.disconnect();
-    paneObserver = new ResizeObserver(scheduleAlign);
+    let lastPaneWidth = sa.clientWidth;
+    paneObserver = new ResizeObserver(() => {
+      if (sa.clientWidth === lastPaneWidth) return;
+      lastPaneWidth = sa.clientWidth;
+      scheduleAlign();
+    });
     paneObserver.observe(sa);
 
     sa.addEventListener('scroll', () => {
@@ -1209,7 +1272,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.6.0</span>
+  <span>v0.7.0</span>
 </footer>
 </body>
 </html>

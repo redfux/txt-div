@@ -5,6 +5,19 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.7.0] – 2026-07-27
+
+### Added
+- Höhe des Merge-Bereichs ist durch Ziehen an seiner Oberkante verstellbar. Der Griff erscheint nur im ausgeklappten Zustand und färbt sich beim Ziehen in der Akzentfarbe
+  - Grenzen: der Merge-Bereich behält mindestens 90 px, der Diff-Bereich mindestens 120 px
+  - Nach dem Ziehen wird das Ergebnis wieder auf die Diff-Panes ausgerichtet
+
+### Changed
+- Der `ResizeObserver` der Diff-Panes löst den Zeilenhöhen-Ausgleich nur noch bei geänderter **Breite** aus. Nur sie verschiebt die Umbruchpunkte; ohne diese Prüfung wäre der Ausgleich bei jedem Frame des Ziehens gelaufen
+- Die Zeiger-Listener beim Ziehen hängen an `window` statt am Griff — der Zeiger verlässt den 6 px schmalen Streifen sofort, `setPointerCapture` entfällt damit
+
+---
+
 ## [0.6.0] – 2026-07-27
 
 ### Changed
