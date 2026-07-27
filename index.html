@@ -921,6 +921,21 @@
       syncResultScroll(sb);
     });
 
+    // Scroll vom Merge-Ergebnis zurück auf Diff-Panes
+    document.getElementById('resultContent').addEventListener('scroll', () => {
+      if (syncLocked) return;
+      const rc = document.getElementById('resultContent');
+      const maxRc = rc.scrollHeight - rc.clientHeight;
+      if (maxRc <= 0) return;
+      const ratio = rc.scrollTop / maxRc;
+      syncLocked = true;
+      const maxSa = sa.scrollHeight - sa.clientHeight;
+      sa.scrollTop = ratio * maxSa;
+      sb.scrollTop = ratio * maxSa;
+      syncLocked = false;
+      updateMinimapViewport();
+    });
+
     sa.addEventListener('click', e => {
       const mbtn = e.target.closest('.merge-btn');
       if (!mbtn) return;
