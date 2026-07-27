@@ -88,8 +88,9 @@
       flex: 1;
     }
 
-    /* ── Theme Toggle ────────────────────────────────────────────────────── */
-    .theme-toggle {
+    /* ── Toggle-Switches (Theme, Auswahl-Modus) ──────────────────────────── */
+    .theme-toggle,
+    .mode-toggle {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -118,7 +119,10 @@
       transition: transform 0.2s;
     }
 
-    [data-theme="light"] .toggle-thumb { transform: translateX(16px); }
+    /* Auf .theme-toggle eingeschränkt, sonst würde der Modus-Switch im
+       Light-Theme mitwandern. Der Modus-Switch schaltet über .on. */
+    [data-theme="light"] .theme-toggle .toggle-thumb { transform: translateX(16px); }
+    .mode-toggle.on .toggle-thumb { transform: translateX(16px); }
 
     /* ── Upload Bar ──────────────────────────────────────────────────────── */
     .upload-bar {
@@ -222,12 +226,6 @@
 
     .nav-btn:hover { background: var(--btn-bg-h); }
     .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-    .nav-btn.active-mode {
-      background: rgba(50,150,255,0.25);
-      border-color: #3296ff;
-      color: #80c0ff;
-    }
 
     .nav-counter {
       font-size: 0.8rem; color: var(--text-dim);
@@ -490,10 +488,11 @@
     <span class="nav-counter" id="navCounter">–</span>
     <button class="nav-btn" id="nextBtn" disabled title="Nächster Unterschied">Weiter &#8595;</button>
   </div>
-  <div class="nav-group">
-    <span style="font-size:0.8rem;color:var(--text-dim)">Auswahl:</span>
-    <button class="nav-btn" id="modeBtn" title="Zwischen Zeilen- und Blockauswahl wechseln">Blockweise</button>
-  </div>
+  <label class="mode-toggle" id="modeToggle" title="Zwischen Block- und Zeilenauswahl wechseln">
+    <span>Auswahl:</span>
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span id="modeLabel">Blockweise</span>
+  </label>
   <div class="legend">
     <div class="legend-item"><div class="legend-dot dot-added"></div> Hinzugefügt</div>
     <div class="legend-item"><div class="legend-dot dot-changed"></div> Geändert</div>
@@ -631,12 +630,13 @@
   const prevBtn    = document.getElementById('prevBtn');
   const nextBtn    = document.getElementById('nextBtn');
   const navCounter = document.getElementById('navCounter');
-  const modeBtn    = document.getElementById('modeBtn');
+  const modeToggle = document.getElementById('modeToggle');
+  const modeLabel  = document.getElementById('modeLabel');
 
-  modeBtn.addEventListener('click', () => {
+  modeToggle.addEventListener('click', () => {
     lineMode = !lineMode;
-    modeBtn.textContent = lineMode ? 'Zeilenweise' : 'Blockweise';
-    modeBtn.classList.toggle('active-mode', lineMode);
+    modeLabel.textContent = lineMode ? 'Zeilenweise' : 'Blockweise';
+    modeToggle.classList.toggle('on', lineMode);
   });
 
   prevBtn.addEventListener('click', () => jumpTo(currentDiff - 1));
@@ -1135,7 +1135,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.5.0</span>
+  <span>v0.5.1</span>
 </footer>
 </body>
 </html>

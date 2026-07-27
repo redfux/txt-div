@@ -5,6 +5,15 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.5.1] – 2026-07-27
+
+### Changed
+- Umschalter zwischen Block- und Zeilenauswahl ist jetzt ein Toggle-Switch in derselben Optik wie der Theme-Umschalter, statt eines Buttons
+- Die Switch-Styles (`.toggle-track`, `.toggle-thumb`) werden von beiden Schaltern gemeinsam genutzt; die Thumb-Verschiebung des Theme-Switches ist dabei auf `.theme-toggle` eingeschränkt worden — die Regel galt vorher für jeden `.toggle-thumb`, wodurch der Modus-Switch im Light-Theme mitgewandert wäre
+- Verwaiste CSS-Regel `.nav-btn.active-mode` entfernt
+
+---
+
 ## [0.5.0] – 2026-07-27
 
 ### Changed
