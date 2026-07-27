@@ -618,7 +618,9 @@
     if (!ra || !ra.classList.contains('open')) return;
     const maxSrc = source.scrollHeight - source.clientHeight;
     if (maxSrc <= 0) return;
+    syncLocked = true;
     rc.scrollTop = (source.scrollTop / maxSrc) * Math.max(0, rc.scrollHeight - rc.clientHeight);
+    syncLocked = false;
   }
 
   // ── Minimap ───────────────────────────────────────────────────────────────
