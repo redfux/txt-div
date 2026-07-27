@@ -286,6 +286,13 @@
       overflow: auto; flex: 1; position: relative;
       font-family: 'Courier New', Courier, monospace;
       font-size: 0.84rem; line-height: 1.6;
+      /* Overlay-Scrollbars (macOS) legen sich über den Inhalt und verdecken
+         sonst die Pfeile am rechten Rand von Pane A, solange sie eingeblendet
+         sind. Der Streifen bleibt in beiden Panes frei, damit die Textspalten
+         gleich breit bleiben und die Zeilen weiter 1:1 fluchten.
+         scrollbar-gutter allein genügt nicht — es wirkt nicht auf
+         Overlay-Scrollbars. */
+      padding-right: 14px;
     }
 
     /* Jede Zeile enthält in beiden Panes dieselben drei Bausteine, nur
@@ -1272,7 +1279,7 @@
 
 <footer>
   <span>thought up by human, created by ai</span>
-  <span>v0.7.0</span>
+  <span>v0.7.1</span>
 </footer>
 </body>
 </html>
