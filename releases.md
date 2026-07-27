@@ -5,6 +5,14 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.7.1] – 2026-07-27
+
+### Fixed
+- Die eingeblendete Scrollbar verdeckte in Pane A die Merge-Pfeile, solange sie nach dem Scrollen sichtbar war. Overlay-Scrollbars (macOS) legen sich über den Inhalt statt Platz einzunehmen; beide Panes halten rechts nun 14 px frei. Der Streifen wird in *beiden* Panes reserviert, damit die Textspalten gleich breit bleiben und die Zeilen weiter 1:1 fluchten
+  - `scrollbar-gutter: stable` wäre hier wirkungslos, da es auf Overlay-Scrollbars nicht greift
+
+---
+
 ## [0.7.0] – 2026-07-27
 
 ### Added
