@@ -1,6 +1,8 @@
 # txt-div
 
-Ein einfaches, browserbasiertees Werkzeug zum visuellen Vergleich zweier Textdateien — ohne Installation, ohne Server, direkt im Browser.
+Ein einfaches, browserbasiertes Werkzeug zum visuellen Vergleich zweier Textdateien — ohne Installation, ohne Server, direkt im Browser.
+
+**Live:** https://redfux.github.io/txt-div/
 
 ## Funktionsweise
 
@@ -13,7 +15,7 @@ Die Dateien verlassen den Browser nicht. Es werden keine Daten an einen Server �
 
 ## Nutzung
 
-1. `txt-div.html` im Browser öffnen (Doppelklick genügt)
+1. `index.html` im Browser öffnen (Doppelklick genügt)
 2. Unter **Datei A** die Originaldatei auswählen
 3. Unter **Datei B** die Vergleichsdatei auswählen
 4. Auf **Vergleichen** klicken
@@ -35,7 +37,7 @@ Die beiden Dateien werden nebeneinander angezeigt. Unterschiede sind farblich he
 
 ## Unterstützte Dateiformate
 
-Alle plaintext-basierten Formate, u. a.: `.txt`, `.md`, `.json`, `.csv`, `.log`, `.xml`, `.html`, `.js`, `.ts`, `.css`, `.py`
+Alle plaintext-basierten Formate — der Dateidialog akzeptiert alle Textdateien (`text/*`), u. a. `.txt`, `.md`, `.json`, `.csv`, `.log`, `.xml`, `.cfg`, `.config`, `.js`, `.ts`, `.css`, `.py`
 
 ## Darstellung
 
