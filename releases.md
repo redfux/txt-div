@@ -5,6 +5,21 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.6.0] – 2026-07-27
+
+### Changed
+- Navigation folgt jetzt dem Auswahlmodus: blockweise wird von Block zu Block gesprungen, zeilenweise von Diff-Zeile zu Diff-Zeile. Der Zähler zeigt entsprechend die Anzahl der Ziele im aktiven Modus
+- Markierung umfasst das ganze Navigationsziel statt nur der ersten Zeile — im Blockmodus also alle Zeilen des Blocks, im Zeilenmodus die einzelne Zeile
+- Beim Umschalten des Modus bleibt die Position erhalten: es wird das Ziel gewählt, das die bisher markierte erste Zeile enthält
+
+### Fixed
+- Der Rahmen des Navigationsziels ist über mehrere Zeilen durchgehend. Das bisherige `outline` hätte jede Zeile einzeln eingekästelt; die Kanten werden nun je Zeilenposition (`nav-first`/`nav-mid`/`nav-last`/`nav-single`) über `inset`-Schatten gesetzt
+
+### Internal
+- `diffGroups` führt pro Block die Liste seiner Zeilen (`rows`); die Navigationsziele liegen in `navList`, `currentDiff` wurde zu `currentNav`
+
+---
+
 ## [0.5.3] – 2026-07-27
 
 ### Changed

@@ -9,7 +9,7 @@ Anforderungen und geplante Funktionen für txt-div.
 - Zwei-Spalten-Diff-Ansicht (Datei A links, Datei B rechts)
 - LCS-Algorithmus für zeilen- und zeichengenauen Vergleich
 - Farbkodierung: grün = hinzugefügt, orange = geändert, rot = entfernt
-- Navigation zwischen Unterschieden (Vor/Zurück + Zähler)
+- Navigation zwischen Unterschieden (Vor/Zurück + Zähler), folgt dem Auswahlmodus: block- oder zeilenweise; das ganze Ziel wird umrandet
 - Minimap mit Viewport-Anzeige
 - Synchrones Scrollen beider Spalten
 - Dark Mode / Light Mode Umschalter
