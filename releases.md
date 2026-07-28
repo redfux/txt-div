@@ -5,6 +5,18 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.8.0] – 2026-07-28
+
+### Added
+- Dateiangaben im Auswahlfeld: hinter dem Dateinamen stehen Größe und Änderungsdatum in grauer, kleinerer Schrift. Bei Platzmangel geben zuerst die grauen Angaben nach (hohes `flex-shrink`) und werden mit Ellipse gekürzt; der Dateiname bleibt vollständig, solange er ins Feld passt. Der volle Text steht jeweils im Tooltip
+  - **Kein Dateipfad möglich:** Browser geben den lokalen Pfad nicht heraus — das `File`-Objekt kennt keinen, `input.value` liefert bewusst `C:\fakepath\<name>`, und `webkitRelativePath` ist nur bei Ordner-Auswahl gefüllt. Ist ein solcher Pfad vorhanden, wird sein Ordner zusätzlich angezeigt
+
+### Changed
+- Beschriftung des Auswahlfeldes lautet „Datei wählen oder hierher ziehen…" — Ablegen per Drag & Drop funktionierte bereits (native Funktion des Datei-Feldes, das die gesamte Fläche abdeckt), war aber nicht erkennbar und in `features.md` noch als offener Punkt geführt
+- Platzhaltertext liegt nur noch in der Konstante `NO_FILE`; er war beim Speichern-Button zusätzlich hart kodiert
+
+---
+
 ## [0.7.1] – 2026-07-27
 
 ### Fixed
