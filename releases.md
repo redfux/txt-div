@@ -5,6 +5,18 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.8.1] – 2026-07-28
+
+### Added
+- Marker für Lücken im Merge-Ergebnis: weggelassene Zeilen hinterließen bisher keine Spur — sie fehlten einfach. An ihrer Stelle steht jetzt eine flache, rot schraffierte Zeile mit `⋯` in der Nummernspalte und der Anzahl
+  - Die Beschriftung unterscheidet die beiden Ursachen: „N Zeilen entfernt" (eine A-Zeile fällt weg, weil die B-Version sie nicht hat) und „N Zeilen nicht übernommen" (eine B-Zeile wurde nicht gewählt). Gemischte Lücken heißen „N Zeilen ausgelassen" — „entfernt" wäre im zweiten Fall sachlich falsch
+  - Die Marker sind rein visuell und gehen **nicht** in Kopieren/Speichern ein; die Zeilennummerierung zählt sie nicht mit
+
+### Changed
+- `computeResult()` liefert neben dem Text jetzt Render-Elemente (`items`) statt nur Zeilen. Die Zuordnungen `opToLine`/`lineToOp` zeigen entsprechend auf Positionen in `items`, da sich der Scroll-Sync nach den DOM-Kindern richtet — sonst hätten die eingefügten Marker die Zuordnung verschoben
+
+---
+
 ## [0.8.0] – 2026-07-28
 
 ### Added
