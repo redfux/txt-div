@@ -24,8 +24,38 @@ Die Version steht ausschließlich in der Konstante `APP_VERSION` im Skript; der 
 ### Diff-Algorithmus: LCS (Longest Common Subsequence)
 - **Zeilenebene:** LCS über die Zeilen-Arrays beider Dateien, liefert die Zuordnung gleicher Zeilen.
 - **Zeichenebene:** Für jede „geänderte" Zeile ein zweiter LCS über die Zeichen, um die exakten Unterschiede hervorzuheben.
-- **Fallback für große Dateien:** Ab mehr als 4.000.000 Zellen (m × n) in der DP-Matrix übernimmt eine greedy Näherung (`fastLcs`), um Speicherprobleme zu vermeiden.
 - **Nicht symmetrisch:** Der Tie-Break `dp[i+1][j] >= dp[i][j+1]` bevorzugt bei Gleichstand eine Richtung. `diffLines(B,A)` kann daher anders gruppieren als `diffLines(A,B)` — weshalb Merge-Entscheidungen beim Dateitausch verworfen und nicht per Index übertragen werden.
+
+### Grenzen des Verfahrens und Näherung
+
+Die exakte DP-Matrix kostet O(m × n) an Speicher und Zeit. Ab `MAX_LCS_CELLS` (25 Mio. Zellen, ≈ 5.000 × 5.000 Zeilen) übernimmt daher die greedy Näherung `fastLcs`.
+
+Messwerte für die exakte Berechnung:
+
+| Zeilen | Zellen | Matrix | Zeit (nur LCS) |
+|---|---|---|---|
+| 2.000 | 4 Mio. | 8 MB | 37 ms |
+| 4.000 | 16 Mio. | 31 MB | 130 ms |
+| 6.000 | 36 Mio. | 69 MB | 267 ms |
+
+**Die Näherung hat eine wichtige Schwäche:** `fastLcs` merkt sich pro Zeileninhalt nur das *erste* Vorkommen in B, und der Suchindex `jMin` steigt monoton. Bei Dateien mit vielen wiederkehrenden Zeilen — schließende Klammern, Leerzeilen, `return;` — bricht die Zuordnung nach der ersten Einfügung zusammen. Direkter Vergleich auf identischen Daten (1.500 Zeilen mit Füllzeilen): der exakte LCS findet **1.440** gemeinsame Zeilen, `fastLcs` nur **5**.
+
+Deshalb zeigt die Oberfläche eine Hinweisleiste, sobald die Näherung greift. Bei Dateien mit eindeutigen Zeilen liefert sie weiterhin brauchbare Ergebnisse — geprüft mit 20.000 Zeilen, wo nur der eine tatsächliche Unterschied gefunden wurde.
+
+Die saubere Lösung wäre ein Myers-Diff (O((m+n)·d) Zeit, O(m+n) Speicher, exakt). Bewusst zurückgestellt, siehe `features.md`.
+
+### Obergrenzen für Eingabedateien
+
+| Grenze | Wert | Geprüft |
+|---|---|---|
+| `MAX_FILE_BYTES` | 5 MB | vor dem Lesen — die Datei wird gar nicht geladen |
+| `MAX_FILE_LINES` | 20.000 | im `onload`, da die Zeilenzahl vorher unbekannt ist |
+
+Beide Kriterien sind nötig, weil sie unabhängig voneinander greifen. Gemessen: 200 Zeilen à 2.000 Zeichen (0,4 MB) brauchen 4.816 ms, 50.000 kurze Zeilen (2,9 MB) nur 5.811 ms — die Dateigröße allein ist also kein verlässlicher Indikator. Maßgeblich sind Zeilenanzahl, Zeilenlänge und der Anteil geänderter Zeilen.
+
+Gezählt wird über `countLines()` mit einer Schleife über `charCodeAt`, nicht über `split('\n')` — letzteres würde bei einer 5-MB-Datei alle Zeilen als Array materialisieren.
+
+Der Engpass oberhalb der Grenze ist nicht der Algorithmus, sondern das DOM: pro Zeile entstehen 11 Knoten, bei 50.000 Zeilen also 550.000.
 
 ## Datenfluss
 
@@ -151,7 +181,7 @@ Die Verschiebung des Theme-Switch-Thumbs ist auf `.theme-toggle` eingeschränkt.
 ## Bekannte Grenzen
 
 - **Kein Dateipfad:** Browser geben ihn nicht heraus. Das `File`-Objekt kennt keinen, `input.value` liefert bewusst `C:\fakepath\<name>`, `webkitRelativePath` ist nur bei Ordner-Auswahl gefüllt. Angezeigt werden daher Größe und Änderungsdatum.
-- **Keine Größenbegrenzung:** Sehr große Dateien können den Browser blockieren, da LCS O(m × n) ist und das Rendering alle Zeilen erzeugt. `runCompare()` fängt den Fehlerfall ab, verhindert ihn aber nicht.
+- **Näherung zwischen 5.000 und 20.000 Zeilen:** In diesem Bereich ist die exakte Matrix nicht mehr tragfähig (bei 20.000 × 20.000 wären es 400 Mio. Zellen und ~800 MB). Die Oberfläche weist darauf hin; bei Dateien mit vielen identischen Zeilen kann das Ergebnis dort zu viele Unterschiede zeigen.
 - **Bedienelemente ohne Tastaturzugang:** Theme-Switch, Modus-Switch, Ergebnis-Aufklappen, Ziehgriff und Minimap sind noch nicht fokussierbar.
 - **Mobil eng:** Bei 375 px Breite bleiben pro Spalte rund 93 px Textbreite. Technisch responsive, praktisch kaum nutzbar.
 - **Abweichung vom Masterprompt:** Google Material Design ist nicht als gestalterische Grundlage verwendet; das Projekt nutzt ein eigenes Farbschema. Ebenso ist das GitHub-Repo öffentlich statt privat — das ist Voraussetzung für GitHub Pages im kostenlosen Plan.

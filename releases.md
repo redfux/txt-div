@@ -5,6 +5,27 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.10.0] – 2026-07-29
+
+### Added
+- **Harte Obergrenzen für Eingabedateien.** Größere Dateien werden abgelehnt, nicht nur mit einer Warnung geladen:
+  - **5 MB** — geprüft vor dem Lesen, die Datei wird gar nicht erst geladen
+  - **20.000 Zeilen** — geprüft nach dem Lesen, da die Zeilenzahl vorher nicht bekannt ist
+  - Beide Grenzen sind nötig, weil Größe und Zeilenzahl unabhängig voneinander sind: 200 Zeilen à 2.000 Zeichen (0,4 MB) kosten mehr Zeit als 50.000 kurze Zeilen (2,9 MB)
+  - Die Meldung nennt den gemessenen und den erlaubten Wert; der betroffene Slot wird geleert und „Vergleichen" deaktiviert
+- **Hinweisleiste, wenn das Näherungsverfahren greift.** Oberhalb der Diff-Ansicht erscheint ein Hinweis mit der Zeilenzahl beider Dateien. Ohne ihn sieht ein Ergebnis von „fast alles geändert" wie ein Defekt aus, statt wie die bekannte Grenze des Verfahrens
+
+### Changed
+- Schwelle für den exakten LCS von **4 Mio. auf 25 Mio. Zellen** erhöht (≈ 5.000 × 5.000 Zeilen). Gemessen: ~185 ms Rechenzeit und ~50 MB für die Matrix, ein vollständiger Vergleich mit 4.900 Zeilen dauert 638 ms bei 26 MB Heap
+  - Wirkung bei Dateien mit wiederkehrenden Zeilen (Klammern, Leerzeilen) und einem eingefügten Block: bei 3.000 und 4.900 Zeilen werden jetzt **4 %** Unterschiede erkannt statt vorher **100 %**
+- Schwelle und Limits liegen als benannte Konstanten (`MAX_LCS_CELLS`, `MAX_FILE_BYTES`, `MAX_FILE_LINES`) am Anfang des Skripts statt als Zahl im Code
+
+### Notes
+- Zwischen 5.000 und 20.000 Zeilen bleibt das Näherungsverfahren aktiv — bei 20.000 × 20.000 wären es 400 Mio. Zellen, was mit ~800 MB Matrixspeicher nicht umsetzbar ist. Daher die Hinweisleiste. Bei Dateien mit eindeutigen Zeilen liefert die Näherung dort weiterhin korrekte Ergebnisse; problematisch sind nur viele identische Zeilen
+- Die eigentliche Lösung wäre ein Myers-Diff (O((m+n)·d) Zeit, exakt). Bewusst zurückgestellt: der Algorithmus ist echte Rechenarbeit mit hohem Testbedarf, während das Heraufsetzen der Schwelle den Großteil realer Dateien abdeckt
+
+---
+
 ## [0.9.0] – 2026-07-28
 
 Abgleich mit dem Coding-Masterprompt.
