@@ -5,6 +5,17 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.11.2] – 2026-07-30
+
+### Fixed
+- **Minimap zeigte Unterschiede in Bereichen, die keine haben.** Am unteren Ende der Leiste erschienen Markierungen, obwohl der letzte Unterschied deutlich davor lag. Bei den Referenz-Configs endete das unterste Segment bei 101,1 % der Leistenhöhe statt bei 96,6 %
+  - **Ursache:** `buildMinimap()` berechnete die Positionen in absoluten Pixeln — anhand der Höhe *zum Zeitpunkt des Aufbaus*. Unmittelbar danach blendet `compare()` den Merge-Bereich ein, wodurch die Leiste von ~743 auf 712 px schrumpft. Die Segmente behielten ihre Pixelwerte und waren dadurch nach unten gestreckt, das letzte lag außerhalb der Leiste
+  - **Lösung:** Positionen werden in Prozent gesetzt und folgen damit jeder Größenänderung. Geprüft bei Leistenhöhen von 712, 456 und 306 px: das unterste Segment endet stabil bei ~97 %, kein Segment liegt außerhalb, unten bleiben 22 px frei
+  - Die Segmenthöhe bleibt in Pixeln mit 2 px Untergrenze: eine Zeile einer 4.600-Zeilen-Datei entspricht 0,02 % der Leiste und wäre sonst unsichtbar
+- Viewport-Markierung der Minimap wird beim Auf- und Zuklappen des Merge-Bereichs aktualisiert. Das ändert die Leistenhöhe, die Markierung blieb aber bis zum nächsten Scrollen an der alten Stelle
+
+---
+
 ## [0.11.1] – 2026-07-30
 
 ### Fixed

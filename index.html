@@ -650,7 +650,7 @@
   // ── Version ───────────────────────────────────────────────────────────────
   // Single source of truth for the version; keep in sync with releases.md.
   // Every other place (footer, future cache busting) derives from this.
-  const APP_VERSION = '0.11.1';
+  const APP_VERSION = '0.11.2';
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   const html = document.documentElement;
@@ -1086,17 +1086,25 @@
   const minimapTrack = document.getElementById('minimapTrack');
   const minimapVP    = document.getElementById('minimapViewport');
 
+  // Positions are set in percent, not pixels: the strip is built while the
+  // merge area is still hidden, and revealing it shortens the strip right
+  // afterwards. Pixel offsets computed against the taller strip would then sit
+  // too low — the last marker ended up past the bottom edge, painting diffs
+  // into a region that has none. Percentages follow any later resize for free.
+  //
+  // The height stays in pixels: one row of a 4600-line file is 0.02 % of the
+  // strip, far below one pixel, so a floor of 2px is what makes a single diff
+  // visible at all. Adjacent diffs therefore merge into a block, which is the
+  // intended reading of an overview.
   function buildMinimap(ops, totalRows) {
     minimapTrack.innerHTML = '';
     if (!totalRows) return;
-    const mapH = minimapEl.clientHeight || 400;
-    const segH = Math.max(2, mapH / totalRows);
     ops.forEach((op, i) => {
       if (op.type === 'equal') return;
       const seg = document.createElement('div');
       seg.className = `minimap-seg ${op.type}`;
-      seg.style.top    = `${(i / totalRows) * mapH}px`;
-      seg.style.height = `${segH}px`;
+      seg.style.top    = `${(i / totalRows) * 100}%`;
+      seg.style.height = `${Math.max(2, minimapEl.clientHeight / totalRows)}px`;
       minimapTrack.appendChild(seg);
     });
   }
@@ -1362,6 +1370,9 @@
     // Align the scroll position right away when the panel opens.
     const sa = document.getElementById('scrollA');
     if (sa) { claimScroll('nav'); syncDiffToResult(sa); }
+    // Toggling changes the height of the minimap, so the viewport marker has to
+    // be recomputed — otherwise it stays wrong until the next scroll.
+    updateMinimapViewport();
   });
 
   // Drag the height of the merge area. Dragging up enlarges it; the diff area

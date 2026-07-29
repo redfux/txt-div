@@ -113,6 +113,13 @@ Bekannte Fehler, gemeldete Probleme und deren Behebung.
 - **Lösung:** Es werden alle Positionen je Zeileninhalt vorgehalten; der erste Treffer ab dem Suchzeiger wird per Binärsuche bestimmt. Auf denselben Dateien liefert das 4.450 gemeinsame Zeilen — das exakte Optimum — bei 3–4 ms.
 - **Rest-Einschränkung:** Weil stets der früheste Treffer genommen wird, bleibt das Verfahren bei Löschungen und verschobenen Blöcken bei etwa 50 % des Optimums (vorher 11 %). Bei Einfügungen und geänderten Zeilen erreicht es 100 %.
 
+### Minimap markierte Unterschiede in Bereichen ohne Unterschiede
+- **Version:** 0.11.2
+- **Problem:** Am unteren Ende der Navigationsleiste erschienen farbige Markierungen, obwohl der letzte Unterschied deutlich weiter oben lag. Bei den Referenz-Configs (letzter Unterschied in Zeile 4.472 von 4.628) endete das unterste Segment bei 101,1 % der Leistenhöhe statt bei 96,6 % — es lag also außerhalb und wurde nur durch `overflow: hidden` beschnitten.
+- **Ursache:** `buildMinimap()` setzte `top` in absoluten Pixeln, berechnet mit der Leistenhöhe zum Zeitpunkt des Aufbaus. Unmittelbar danach blendet `compare()` den Merge-Bereich ein (`resultArea.style.display = ''`), wodurch der Diff-Bereich und mit ihm die Leiste von ~743 auf 712 px schrumpft. Die bereits gesetzten Pixelwerte passten dann nicht mehr zur neuen Höhe — alle Segmente waren um den Faktor 743/712 nach unten verschoben.
+- **Lösung:** `top` wird in Prozent gesetzt und skaliert damit automatisch mit. Verifiziert bei Leistenhöhen von 712, 456 und 306 px (zugeklappt, aufgeklappt, Merge-Bereich vergrößert): das unterste Segment endet stabil bei ~97 %, kein Segment liegt außerhalb, unten bleiben 22 px frei.
+- **Bewusst beibehalten:** Die Segmenthöhe bleibt in Pixeln mit 2 px Untergrenze. Eine Zeile einer 4.600-Zeilen-Datei entspricht 0,02 % der Leiste; ohne Untergrenze wäre ein einzelner Unterschied unsichtbar. Dicht benachbarte Unterschiede verschmelzen dadurch zu einem Block, was für eine Überblicksleiste beabsichtigt ist.
+
 ### Zeichenvergleich konnte den Browser minutenlang blockieren
 - **Version:** 0.11.1
 - **Problem:** Eine Datei mit vielen langen Zeilen konnte den Vergleich extrem verlangsamen, obwohl sie alle Größenlimits einhielt. Hochgerechnet: 1.310 Zeilen à 4.000 Zeichen (5 MB) = **77 Sekunden**.
