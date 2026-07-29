@@ -650,7 +650,7 @@
   // ── Version ───────────────────────────────────────────────────────────────
   // Single source of truth for the version; keep in sync with releases.md.
   // Every other place (footer, future cache busting) derives from this.
-  const APP_VERSION = '0.11.0';
+  const APP_VERSION = '0.11.1';
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   const html = document.documentElement;
@@ -686,6 +686,18 @@
   // 25M left almost no headroom. Whenever the fallback kicks in the UI says so.
   const MAX_LCS_CELLS = 64_000_000;
 
+  // Separate, far smaller budget for the character-level diff inside a changed
+  // row, because it runs once per changed row. With the row budget above, a
+  // 4000-character line would cost ~55 ms on its own — a 5 MB file of such
+  // lines takes over a minute. 250k cells covers lines up to 500 characters,
+  // which is ample for configuration and source files.
+  //
+  // Beyond that the highlighting is skipped rather than approximated: single
+  // characters recur so heavily that the greedy fallback finds only ~1 % of the
+  // optimum and would mark essentially at random. The row still shows as
+  // changed, just without character-level detail.
+  const MAX_CHAR_LCS_CELLS = 250_000;
+
   // ── File loading ──────────────────────────────────────────────────────────
   const fileA = document.getElementById('fileA');
   const fileB = document.getElementById('fileB');
@@ -720,9 +732,12 @@
 
   // Report a problem where the affected file is shown, rather than failing
   // silently. Clears the slot so a stale comparison cannot be triggered.
-  function showFileError(labelEl, metaEl, slot, message) {
-    metaEl.textContent = message;
-    metaEl.title       = message;
+  //
+  // `short` has to fit next to the file name, which is narrow — the field clips
+  // with an ellipsis. `full` carries the explanation and goes into the tooltip.
+  function showFileError(labelEl, metaEl, slot, short, full) {
+    metaEl.textContent = short;
+    metaEl.title       = full || short;
     metaEl.classList.add('error');
     if (slot === 'A') contentA = null;
     else              contentB = null;
@@ -752,7 +767,9 @@
       // Check the size before reading, so an oversized file is never loaded.
       if (file.size > MAX_FILE_BYTES) {
         showFileError(labelEl, metaEl, slot,
-          `Datei zu groß: ${formatSize(file.size)} — Maximum ${formatSize(MAX_FILE_BYTES)}`);
+          `zu groß: ${formatSize(file.size)} (max. ${formatSize(MAX_FILE_BYTES)})`,
+          `Diese Datei ist mit ${formatSize(file.size)} zu groß. ` +
+          `Verglichen werden können Dateien bis ${formatSize(MAX_FILE_BYTES)}.`);
         return;
       }
 
@@ -761,14 +778,17 @@
       reader.onload = e => {
         const text = e.target.result;
         if (typeof text !== 'string') {
-          showFileError(labelEl, metaEl, slot, 'Datei konnte nicht als Text gelesen werden');
+          showFileError(labelEl, metaEl, slot, 'kein lesbarer Text',
+            'Diese Datei enthält keinen lesbaren Text — möglicherweise ist es keine Textdatei.');
           return;
         }
         // The row count is only known once the text is available.
         const lines = countLines(text);
         if (lines > MAX_FILE_LINES) {
           showFileError(labelEl, metaEl, slot,
-            `Zu viele Zeilen: ${lines.toLocaleString('de-DE')} — Maximum ${MAX_FILE_LINES.toLocaleString('de-DE')}`);
+            `zu viele Zeilen: ${lines.toLocaleString('de-DE')} (max. ${MAX_FILE_LINES.toLocaleString('de-DE')})`,
+            `Diese Datei hat ${lines.toLocaleString('de-DE')} Zeilen. Verglichen werden ` +
+            `können Dateien mit bis zu ${MAX_FILE_LINES.toLocaleString('de-DE')} Zeilen.`);
           return;
         }
         if (slot === 'A') contentA = text;
@@ -777,20 +797,25 @@
       };
 
       reader.onerror = () => {
-        // reader.error carries a DOMException such as NotReadableError.
-        const reason = reader.error && reader.error.name ? ` (${reader.error.name})` : '';
-        showFileError(labelEl, metaEl, slot, `Datei konnte nicht gelesen werden${reason}`);
+        // The technical name (e.g. NotReadableError) goes to the console only —
+        // it means nothing to the person using the app.
+        console.error('FileReader error:', reader.error);
+        showFileError(labelEl, metaEl, slot, 'konnte nicht gelesen werden',
+          'Diese Datei konnte nicht gelesen werden. Ist sie noch vorhanden und lesbar?');
       };
 
       reader.onabort = () => {
-        showFileError(labelEl, metaEl, slot, 'Lesevorgang abgebrochen');
+        showFileError(labelEl, metaEl, slot, 'Laden abgebrochen',
+          'Das Laden dieser Datei wurde abgebrochen. Bitte erneut auswählen.');
       };
 
       // readAsText itself can throw, e.g. when the file vanished after picking.
       try {
         reader.readAsText(file, 'UTF-8');
       } catch (err) {
-        showFileError(labelEl, metaEl, slot, `Datei konnte nicht geöffnet werden (${err.name})`);
+        console.error('readAsText failed:', err);
+        showFileError(labelEl, metaEl, slot, 'konnte nicht geöffnet werden',
+          'Diese Datei konnte nicht geöffnet werden. Bitte erneut auswählen.');
       }
     });
   }
@@ -835,8 +860,9 @@
     } catch (err) {
       console.error('compare() failed:', err);
       document.getElementById('diffContainer').innerHTML =
-        '<div class="placeholder error">Vergleich fehlgeschlagen — die Dateien sind ' +
-        'möglicherweise zu groß.<br>Details in der Browser-Konsole.</div>';
+        '<div class="placeholder error">Der Vergleich ist fehlgeschlagen.<br>' +
+        'Bitte andere Dateien versuchen — technische Details stehen in der ' +
+        'Browser-Konsole.</div>';
       document.getElementById('resultArea').style.display = 'none';
       document.getElementById('notice').hidden = true;
       minimapEl.style.display = 'none';
@@ -1180,6 +1206,9 @@
   // Character-level diff within a changed row.
   function charDiff(a, b) {
     if (a === b) return [escHtml(a), escHtml(b)];
+    // Too long to diff by character: return the plain text, so the row still
+    // reads as changed but without misleading highlights. See MAX_CHAR_LCS_CELLS.
+    if (a.length * b.length > MAX_CHAR_LCS_CELLS) return [escHtml(a), escHtml(b)];
     const oa = [], ob = [];
     const common = lcs([...a], [...b]);
     let ia = 0, ib = 0, ci = 0;
@@ -1417,10 +1446,11 @@
     const notice = document.getElementById('notice');
     if (linesA.length * linesB.length > MAX_LCS_CELLS) {
       notice.textContent =
-        `Hinweis: Bei dieser Zeilenzahl (${linesA.length.toLocaleString('de-DE')} / ` +
-        `${linesB.length.toLocaleString('de-DE')}) wird ein Näherungsverfahren verwendet. ` +
-        `Bei Dateien mit vielen wiederkehrenden Zeilen kann es mehr Unterschiede anzeigen, ` +
-        `als tatsächlich bestehen.`;
+        `Diese Dateien sind groß (${linesA.length.toLocaleString('de-DE')} und ` +
+        `${linesB.length.toLocaleString('de-DE')} Zeilen). Der Vergleich läuft deshalb mit ` +
+        `einem schnelleren, weniger genauen Verfahren: Hinzugefügte und geänderte Zeilen ` +
+        `erkennt es zuverlässig. Wurden dagegen Zeilen gelöscht oder Abschnitte verschoben, ` +
+        `kann es mehr Unterschiede anzeigen, als wirklich vorhanden sind.`;
       notice.hidden = false;
     } else {
       notice.hidden = true;

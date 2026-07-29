@@ -43,6 +43,20 @@ Die Schwelle ist am Hauptanwendungsfall bemessen: Switch- und WLC-Konfiguratione
 
 Der maximale DP-Wert entspricht der Länge der gemeinsamen Teilfolge und bleibt bei 8.000 Zeilen weit unter der `Uint16Array`-Grenze von 65.535.
 
+### Zeichenvergleich innerhalb einer Zeile
+
+`charDiff` hat eine **eigene, viel kleinere** Schwelle: `MAX_CHAR_LCS_CELLS` = 250.000 Zellen, also Zeilen bis 500 Zeichen. Nötig, weil die Funktion einmal pro geänderter Zeile läuft — mit der Zeilen-Schwelle von 64 Mio. hätte eine Zeile mit 4.000 Zeichen allein 55 ms gekostet, eine 5-MB-Datei aus solchen Zeilen hochgerechnet 77 Sekunden.
+
+Oberhalb der Grenze wird die Hervorhebung **weggelassen, nicht genähert.** Auf Zeichenebene wiederholen sich einzelne Zeichen so stark, dass die greedy Variante nur 1–14 % des Optimums findet und praktisch zufällige Stellen markieren würde. Die Zeile bleibt als geändert gekennzeichnet, nur ohne Detail innerhalb der Zeile — das ist ehrlicher als eine falsche Markierung.
+
+| Zeichen je Zeile | Zellen | Verfahren | Kosten je Zeile |
+|---|---|---|---|
+| 200 | 40.000 | exakt | 0,5 ms |
+| 500 | 250.000 | exakt (Grenze) | 1,3 ms |
+| ab 501 | – | übersprungen | ~0 ms |
+
+Zur Einordnung: Die längste Zeile der Referenz-Switch-Konfigurationen hat 208 Zeichen.
+
 ### Verhalten der Näherung
 
 `fastLcs` läuft einmal durch A und nimmt jeweils den frühesten noch verfügbaren Treffer in B. Dazu hält es **alle** Positionen je Zeileninhalt vor und bestimmt den ersten Treffer ab dem Suchzeiger per Binärsuche.

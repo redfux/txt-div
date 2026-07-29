@@ -5,6 +5,25 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.11.1] – 2026-07-30
+
+### Fixed
+- **Eigene Schwelle für den Zeichenvergleich.** `charDiff` nutzte dieselbe Grenze wie der Zeilenvergleich (64 Mio. Zellen), läuft aber einmal *pro geänderter Zeile*. Eine Zeile mit 4.000 Zeichen kostete dadurch allein 55 ms — eine Datei mit 1.310 solcher Zeilen (5 MB, also innerhalb aller Limits) hätte hochgerechnet **77 Sekunden** gebraucht
+  - Neue Grenze `MAX_CHAR_LCS_CELLS` = 250.000 Zellen, also Zeilen bis 500 Zeichen. Das deckt Konfigurations- und Quelldateien ab; die längste Zeile der Referenz-Switch-Configs hat 208 Zeichen
+  - Oberhalb der Grenze wird die Zeichen-Hervorhebung **weggelassen statt genähert**: einzelne Zeichen wiederholen sich so stark, dass die greedy Variante nur ~1 % des Optimums findet und praktisch zufällig markieren würde. Die Zeile bleibt als geändert gekennzeichnet, nur ohne Detail innerhalb der Zeile
+  - Gemessen: derselbe Fall fällt von hochgerechnet 77 s auf **1,5 s**. Der verbleibende ungünstigste Fall (5 MB aus Zeilen à 300–500 Zeichen, alle geändert) liegt bei ~14 s, wovon etwa ein Drittel auf das DOM-Rendering entfällt
+
+### Changed
+- **Verständlichere Meldungen.** Die Texte nannten Schwellwerte und technische Fehlernamen, aber nicht die Konsequenz:
+  - Der Hinweis zum schnelleren Verfahren nannte „wiederkehrende Zeilen" als Ursache. Das galt vor der Reparatur in 0.11.0; seither sind **gelöschte oder verschobene Abschnitte** der Auslöser. Der Text sagt jetzt zusätzlich, was zuverlässig funktioniert (hinzugefügte und geänderte Zeilen)
+  - Technische Fehlernamen wie `NotReadableError` erscheinen nicht mehr im Fenster, sondern nur in der Konsole
+  - Dateimeldungen sind zweistufig: ein kurzer Text, der neben den Dateinamen passt (z. B. „zu groß: 6.0 MB (max. 5.0 MB)"), und die vollständige Erklärung im Tooltip. Zuvor wurden die längeren Meldungen im engen Feld abgeschnitten — ausgerechnet am erlaubten Höchstwert
+
+### Notes
+- Schwellwerte geprüft und unverändert gelassen: 5 MB, 20.000 Zeilen, 64 Mio. Zellen für den Zeilenvergleich. Die Referenz-Configs (4.628 Zeilen, längste Zeile 208 Zeichen) bleiben unberührt — 553 ms, alle 178 Hervorhebungen intakt
+
+---
+
 ## [0.11.0] – 2026-07-30
 
 Validiert an zwei echten Cisco-Switch-Konfigurationen mit je 4.628 Zeilen, von denen nur 12 % eindeutig sind (282× `!`, 178× identische Interface-Zeilen). Referenz für alle Angaben ist GNU `diff`, das 178 Änderungen findet.
