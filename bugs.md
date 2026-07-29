@@ -113,6 +113,13 @@ Bekannte Fehler, gemeldete Probleme und deren Behebung.
 - **Lösung:** Es werden alle Positionen je Zeileninhalt vorgehalten; der erste Treffer ab dem Suchzeiger wird per Binärsuche bestimmt. Auf denselben Dateien liefert das 4.450 gemeinsame Zeilen — das exakte Optimum — bei 3–4 ms.
 - **Rest-Einschränkung:** Weil stets der früheste Treffer genommen wird, bleibt das Verfahren bei Löschungen und verschobenen Blöcken bei etwa 50 % des Optimums (vorher 11 %). Bei Einfügungen und geänderten Zeilen erreicht es 100 %.
 
+### Zeichenvergleich konnte den Browser minutenlang blockieren
+- **Version:** 0.11.1
+- **Problem:** Eine Datei mit vielen langen Zeilen konnte den Vergleich extrem verlangsamen, obwohl sie alle Größenlimits einhielt. Hochgerechnet: 1.310 Zeilen à 4.000 Zeichen (5 MB) = **77 Sekunden**.
+- **Ursache:** `charDiff` nutzte dieselbe Zellen-Schwelle wie der Zeilenvergleich (64 Mio.), läuft aber einmal pro geänderter Zeile. Bei 4.000 Zeichen sind das 16 Mio. Zellen und 55 ms — für eine einzige Zeile. Das Heraufsetzen der Zeilen-Schwelle in 0.11.0 hatte diesen Effekt verstärkt.
+- **Lösung:** Eigene Schwelle `MAX_CHAR_LCS_CELLS` = 250.000 Zellen (Zeilen bis 500 Zeichen). Darüber wird die Zeichen-Hervorhebung weggelassen, nicht genähert — auf Zeichenebene findet die greedy Variante nur ~1 % des Optimums und würde zufällig markieren. Ergebnis: derselbe Fall braucht 1,5 s statt 77 s.
+- **Rest-Einschränkung:** Der ungünstigste Fall innerhalb der Limits (5 MB aus Zeilen à 300–500 Zeichen, alle geändert) liegt bei ~14 s, davon etwa ein Drittel DOM-Rendering.
+
 ### Schwelle für die exakte Berechnung zu knapp bemessen
 - **Version:** 0.11.0
 - **Problem:** Die Grenze von 25 Mio. Zellen lag nur 7 % über dem Bedarf realer Switch-Konfigurationen (4.628 Zeilen = 21,4 Mio. Zellen). Eine um 623 Zeilen größere Config kippte das Ergebnis von 178 auf 4.678 gemeldete Änderungen — kein gleitender Übergang, sondern ein Umschlagen ins Unbrauchbare.

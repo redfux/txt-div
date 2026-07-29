@@ -83,6 +83,8 @@ Zur Orientierung (gemessene Werte):
 
 Sehr lange Zeilen wirken stärker als die Dateigröße: 200 Zeilen mit je 2.000 Zeichen brauchen länger als 50.000 kurze Zeilen.
 
+**Sehr lange Zeilen:** Bei Zeilen über 500 Zeichen wird auf die zeichengenaue Hervorhebung innerhalb der Zeile verzichtet. Die Zeile ist weiterhin als geändert markiert, es wird aber nicht mehr angezeigt, *welche* Zeichen abweichen. Normale Konfigurations- und Quellzeilen liegen deutlich darunter.
+
 Geprüft mit zwei Cisco-Switch-Konfigurationen à 4.628 Zeilen: das Ergebnis stimmt mit GNU `diff` überein (178 Änderungen), der Vergleich dauert 0,53 s.
 
 **Weitere Grenzen:**
