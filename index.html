@@ -7,12 +7,12 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none';">
   <title>txt-div</title>
   <script>
-    // System-Theme vor dem ersten Render setzen, verhindert Flash
+    // Apply the system theme before the first paint to avoid a flash.
     document.documentElement.dataset.theme =
       window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   </script>
   <style>
-    /* ── CSS-Variablen: Dark/Light ───────────────────────────────────────── */
+    /* ── CSS custom properties: dark / light ─────────────────────────────── */
     :root {
       --bg:          #1a1a2e;
       --bg2:         #16213e;
@@ -34,7 +34,8 @@
       --minimap-bg:  #0d1525;
       --minimap-cur: rgba(255,255,255,0.12);
       --nav-bg:      #16213e;
-      --switch:      #23a96a;   /* Thumb der Toggle-Switches, in beiden Themes gleich */
+      --switch:      #23a96a;   /* toggle switch thumb, identical in both themes */
+      --error:       #ff8f8f;   /* light enough for 4.5:1 on --btn-bg */
     }
     [data-theme="light"] {
       --bg:          #f5f5f5;
@@ -57,6 +58,7 @@
       --minimap-bg:  #e0e4ef;
       --minimap-cur: rgba(0,0,0,0.12);
       --nav-bg:      #eef0f8;
+      --error:       #b3261e;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -89,7 +91,7 @@
       flex: 1;
     }
 
-    /* ── Toggle-Switches (Theme, Auswahl-Modus) ──────────────────────────── */
+    /* ── Toggle switches (theme, selection mode) ─────────────────────────── */
     .theme-toggle,
     .mode-toggle {
       display: flex;
@@ -120,13 +122,12 @@
       transition: transform 0.2s;
     }
 
-    /* Auf .theme-toggle eingeschränkt, sonst würde der Modus-Switch im
-       Light-Theme mitwandern. Der Modus-Switch schaltet über .on. */
+    /* Scoped to .theme-toggle, otherwise the mode switch would slide along in
+       the light theme. The mode switch is driven by .on instead. */
     [data-theme="light"] .theme-toggle .toggle-thumb { transform: translateX(16px); }
 
-    /* Der Modus-Switch ist beidseitig beschriftet: Thumb links = Zeilenweise
-       (Label links), Thumb rechts = Blockweise. .on steht daher für
-       Blockweise, nicht für lineMode. */
+    /* The mode switch is labelled on both sides: thumb left = per line (left
+       label), thumb right = per block. So .on means per block, not lineMode. */
     .mode-toggle.on .toggle-thumb { transform: translateX(16px); }
 
     .mode-opt { transition: color 0.2s; }
@@ -136,7 +137,7 @@
       font-weight: 600;
     }
 
-    /* ── Upload Bar ──────────────────────────────────────────────────────── */
+    /* ── Upload bar ──────────────────────────────────────────────────────── */
     .upload-bar {
       background: var(--bg2);
       padding: 12px 20px;
@@ -163,8 +164,8 @@
       letter-spacing: 0.05em;
     }
 
-    /* block, damit das Feld die ganze Gruppenbreite einnimmt — sonst bliebe
-       rechts davon Leerraum und der Tausch-Button rückte an Datei B heran */
+    /* block so the field fills the whole group width — otherwise slack would
+       remain to its right and the swap button would sit next to file B. */
     .file-btn { position: relative; display: block; }
 
     .file-btn input[type="file"] {
@@ -187,11 +188,11 @@
 
     .file-btn:hover .file-face { background: var(--btn-bg-h); }
 
-    /* Bei Platzmangel gibt die Zusatzinfo praktisch allein nach (hohes
-       flex-shrink) und wird gekürzt; der Name bleibt dadurch vollständig,
-       solange er überhaupt ins Feld passt. Erst danach schrumpft auch er.
-       Kein max-width auf dem Namen — zusammen mit dem gap ergäbe das sonst
-       einen Überlauf, sobald die Zusatzinfo auf 0 geschrumpft ist. */
+    /* When space runs short the metadata gives way almost alone (very high
+       flex-shrink) and gets clipped, so the name stays complete as long as it
+       fits at all. Only then does the name shrink too. No max-width on the
+       name — combined with the gap that would overflow once the metadata has
+       shrunk to zero. */
     .file-name {
       flex: 0 1 auto; min-width: 0;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -202,6 +203,9 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       color: var(--text-dim); font-size: 0.76rem;
     }
+
+    /* Read errors are surfaced in place of the metadata. */
+    .file-meta.error { color: var(--error); font-style: italic; }
 
     .compare-btn {
       padding: 8px 22px;
@@ -214,7 +218,7 @@
     .compare-btn:hover { background: var(--accent-h); }
     .compare-btn:disabled { background: var(--btn-bg); color: var(--text-dim); cursor: not-allowed; }
 
-    /* Tausch-Button zwischen den beiden Dateiauswahlen */
+    /* Swap button between the two file pickers */
     .swap-btn {
       padding: 6px 12px;
       background: var(--btn-bg);
@@ -229,7 +233,7 @@
     .swap-btn:hover:not(:disabled) { background: var(--btn-bg-h); }
     .swap-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    /* ── Nav + Legend Bar ────────────────────────────────────────────────── */
+    /* ── Nav + legend bar ────────────────────────────────────────────────── */
     .toolbar {
       background: var(--nav-bg);
       padding: 7px 16px;
@@ -273,7 +277,7 @@
     .dot-changed { background: rgba(220,140,30,.6); border: 1px solid #dc8c1e; }
     .dot-removed { background: rgba(220,60,60,.6);  border: 1px solid #dc3c3c; }
 
-    /* ── Main Layout ─────────────────────────────────────────────────────── */
+    /* ── Main layout ─────────────────────────────────────────────────────── */
     .diff-wrapper {
       display: flex; flex: 1; overflow: hidden; min-height: 0;
     }
@@ -296,34 +300,33 @@
       flex-shrink: 0;
     }
 
-    /* position: relative macht den Container zum offsetParent seiner Zeilen —
-       nur dann ist row.offsetTop direkt als scrollTop verwendbar. */
+    /* position: relative makes the container the offsetParent of its rows —
+       only then is row.offsetTop directly usable as scrollTop. */
     .pane-content {
       overflow: auto; flex: 1; position: relative;
       font-family: 'Courier New', Courier, monospace;
       font-size: 0.84rem; line-height: 1.6;
-      /* Overlay-Scrollbars (macOS) legen sich über den Inhalt und verdecken
-         sonst die Pfeile am rechten Rand von Pane A, solange sie eingeblendet
-         sind. Der Streifen bleibt in beiden Panes frei, damit die Textspalten
-         gleich breit bleiben und die Zeilen weiter 1:1 fluchten.
-         scrollbar-gutter allein genügt nicht — es wirkt nicht auf
-         Overlay-Scrollbars. */
+      /* Overlay scrollbars (macOS) paint over the content and would otherwise
+         hide the arrows at the right edge of pane A while shown. The strip is
+         reserved in both panes so the text columns stay equally wide and rows
+         keep lining up 1:1. scrollbar-gutter alone is not enough — it has no
+         effect on overlay scrollbars. */
       padding-right: 14px;
     }
 
-    /* Jede Zeile enthält in beiden Panes dieselben drei Bausteine, nur
-       spiegelbildlich angeordnet — Pane A: line-num | line-text | merge-cell,
-       Pane B: line-num | merge-cell | line-text. Da die merge-cell in beiden
-       Panes gleich breit ist, bleibt die Textspalte identisch breit, sodass
-       Zeilen an denselben Stellen umbrechen und 1:1 fluchten. */
+    /* Every row holds the same three parts in both panes, only mirrored —
+       pane A: line-num | line-text | merge-cell, pane B: line-num |
+       merge-cell | line-text. Since the merge-cell has the same width in both
+       panes, the text column stays equally wide, so rows wrap at the same
+       points and line up 1:1. */
     .line {
       display: flex; min-height: 1.6em;
       border-bottom: 1px solid var(--line-border);
     }
 
-    /* Rahmen um das aktuelle Navigationsziel. Ein outline würde jede Zeile
-       einzeln einkästeln; über inset-Schatten pro Kante entsteht dagegen ein
-       durchgehender Rahmen, auch wenn das Ziel mehrere Zeilen umfasst. */
+    /* Frame around the current navigation target. An outline would box each
+       row separately; per-edge inset shadows instead produce one continuous
+       frame even when the target spans several rows. */
     .line.current-diff {
       z-index: 1; position: relative;
       --edge-l: inset  2px 0 0 var(--accent);
@@ -344,9 +347,8 @@
       font-size: 0.76rem; line-height: 1.6; flex-shrink: 0;
     }
 
-    /* Umbruch bevorzugt an Leerzeichen; nur ein einzelnes zu langes Wort
-       wird mittendrin getrennt. min-width: 0 lässt das Flex-Kind schrumpfen,
-       damit der Umbruch überhaupt greift. */
+    /* Prefer breaking at spaces; only a single overlong word is split mid-way.
+       min-width: 0 lets the flex child shrink so wrapping takes effect. */
     .line-text {
       padding: 0 12px; white-space: pre-wrap;
       overflow-wrap: anywhere; word-break: normal;
@@ -362,11 +364,11 @@
     mark.removed { background: rgba(220,60,60,.5);  border-radius: 2px; color: inherit; }
     mark.changed { background: rgba(220,140,30,.5); border-radius: 2px; color: inherit; }
 
-    /* ── Merge-Pfeile ────────────────────────────────────────────────────────
-       Je ein Pfeil pro Seite, beide zur Mittellinie hin: in Pane A hinter dem
-       Text, in Pane B vor dem Text. Beide Panes behalten dabei genau eine
-       merge-cell gleicher Breite, damit die Textspalten gleich breit bleiben
-       und Zeilen an denselben Stellen umbrechen. */
+    /* ── Merge arrows ────────────────────────────────────────────────────────
+       One arrow per side, both facing the centre line: in pane A behind the
+       text, in pane B before it. Both panes keep exactly one merge-cell of
+       equal width so the text columns stay equally wide and rows wrap at the
+       same points. */
     .merge-cell {
       width: 26px; flex-shrink: 0;
       display: flex; align-items: flex-start; justify-content: center;
@@ -385,8 +387,8 @@
 
     .merge-btn:hover { background: var(--btn-bg-h); color: var(--text); }
 
-    /* Gewählte Seite — einheitliche Auswahlfarbe, die Seite ergibt sich
-       bereits aus der Position des Pfeils */
+    /* Chosen side — one shared selection colour, since the side is already
+       conveyed by the arrow's position. */
     .merge-btn.active {
       background: rgba(50,150,255,0.3);
       border-color: #3296ff;
@@ -400,13 +402,13 @@
       outline-offset: -1px;
     }
 
-    /* ── Result Area ─────────────────────────────────────────────────────── */
+    /* ── Result area ─────────────────────────────────────────────────────── */
     .result-area {
       flex-shrink: 0; border-top: 2px solid var(--border);
     }
 
-    /* Ziehgriff an der Oberkante — das Panel ist unten angedockt, nach oben
-       ziehen vergrößert es also. Nur im ausgeklappten Zustand nutzbar. */
+    /* Grip on the top edge — the panel is docked at the bottom, so dragging
+       up enlarges it. Only usable while expanded. */
     .result-resizer {
       display: none;
       height: 6px; cursor: row-resize;
@@ -464,11 +466,12 @@
       font-size: 0.84rem; line-height: 1.6;
     }
 
-    /* Alle Zeilen aus Diff-Positionen hellblau, egal ob A oder B gewählt */
+    /* Every row originating from a diff position is light blue, no matter
+       whether A or B was chosen. */
     .line.diff-line .line-text { background: rgba(50,150,255,0.18); }
 
-    /* Marker für Zeilen, die im Ergebnis weggelassen wurden. Rot wie in der
-       Legende „Entfernt"; flacher als eine Textzeile, da nur Hinweis. */
+    /* Marker for rows omitted from the result. Red as in the "removed" legend;
+       flatter than a text row since it is only a hint. */
     .line.gap-line { min-height: 0; }
 
     .line.gap-line .line-num {
@@ -519,6 +522,8 @@
       text-align: center; padding: 40px;
     }
 
+    .placeholder.error { color: var(--error); }
+
     .stats { font-size: 0.76rem; color: var(--stats-col); }
 
     /* ── Footer ──────────────────────────────────────────────────────────── */
@@ -541,7 +546,7 @@
   </label>
 </header>
 
-<!-- Upload -->
+<!-- File pickers -->
 <div class="upload-bar">
   <div class="upload-group">
     <label>Datei A (Original)</label>
@@ -567,7 +572,7 @@
   <button class="compare-btn" id="compareBtn" disabled>Vergleichen</button>
 </div>
 
-<!-- Toolbar: Navigation + Auswahl-Modus + Legende -->
+<!-- Toolbar: navigation, selection mode, legend -->
 <div class="toolbar">
   <div class="nav-group">
     <button class="nav-btn" id="prevBtn" disabled title="Vorheriger Unterschied">&#8593; Zurück</button>
@@ -587,7 +592,7 @@
   </div>
 </div>
 
-<!-- Diff-Bereich + Minimap -->
+<!-- Diff panes and minimap -->
 <div class="diff-wrapper">
   <div class="diff-container" id="diffContainer">
     <div class="placeholder">Zwei Textdateien auswählen und auf „Vergleichen" klicken</div>
@@ -598,7 +603,7 @@
   </div>
 </div>
 
-<!-- Merge-Ergebnis -->
+<!-- Merge result -->
 <div class="result-area" id="resultArea" style="display:none">
   <div class="result-resizer" id="resultResizer" title="Höhe des Merge-Bereichs ziehen"></div>
   <div class="result-toggle" id="resultToggle">
@@ -620,7 +625,17 @@
   </div>
 </div>
 
+<footer>
+  <span>thought up by human, created by ai</span>
+  <span id="appVersion"></span>
+</footer>
+
 <script>
+  // ── Version ───────────────────────────────────────────────────────────────
+  // Single source of truth for the version; keep in sync with releases.md.
+  // Every other place (footer, future cache busting) derives from this.
+  const APP_VERSION = '0.9.0';
+
   // ── Theme ─────────────────────────────────────────────────────────────────
   const html = document.documentElement;
 
@@ -630,7 +645,7 @@
     document.getElementById('themeLabel').textContent = isLight ? 'Light' : 'Dark';
   }
 
-  // Toggle-Button sofort auf aktuelles (system-gesetztes) Theme anpassen
+  // Sync the toggle with the theme the inline head script already applied.
   applyThemeUI(html.dataset.theme);
 
   document.getElementById('themeToggle').addEventListener('click', () => {
@@ -660,10 +675,10 @@
     return kb < 1024 ? `${kb.toFixed(1)} KB` : `${(kb / 1024).toFixed(1)} MB`;
   }
 
-  // Der lokale Dateipfad ist im Browser nicht zugänglich — das File-Objekt
-  // kennt keinen, und input.value liefert bewusst nur "C:\fakepath\<name>".
-  // webkitRelativePath ist ausschließlich bei Ordner-Auswahl gefüllt; ist es
-  // vorhanden, wird der Ordner gezeigt, sonst Größe und Änderungsdatum.
+  // The local file path is not available in the browser — the File object has
+  // none, and input.value deliberately yields only "C:\fakepath\<name>".
+  // webkitRelativePath is populated for directory picks only; when present the
+  // folder is shown, otherwise size and modification date.
   function fileMeta(file) {
     const rel  = file.webkitRelativePath || '';
     const dir  = rel.includes('/') ? rel.slice(0, rel.lastIndexOf('/')) : '';
@@ -672,31 +687,66 @@
     return dir ? `${dir} · ${info}` : info;
   }
 
+  // Report a problem where the affected file is shown, rather than failing
+  // silently. Clears the slot so a stale comparison cannot be triggered.
+  function showFileError(labelEl, metaEl, slot, message) {
+    metaEl.textContent = message;
+    metaEl.title       = message;
+    metaEl.classList.add('error');
+    if (slot === 'A') contentA = null;
+    else              contentB = null;
+    updateFileButtons();
+  }
+
   function readFile(input, labelEl, metaEl, slot) {
     input.addEventListener('change', () => {
       const file = input.files[0];
       if (!file) return;
       labelEl.textContent = file.name;
-      labelEl.title       = file.name;            // voller Name im Tooltip,
-      metaEl.textContent  = fileMeta(file);       // falls er gekürzt werden muss
+      labelEl.title       = file.name;          // full name in the tooltip in
+      metaEl.textContent  = fileMeta(file);     // case it has to be clipped
       metaEl.title        = metaEl.textContent;
+      metaEl.classList.remove('error');
+
       const reader = new FileReader();
+
       reader.onload = e => {
-        if (slot === 'A') contentA = e.target.result;
-        else              contentB = e.target.result;
+        const text = e.target.result;
+        if (typeof text !== 'string') {
+          showFileError(labelEl, metaEl, slot, 'Datei konnte nicht als Text gelesen werden');
+          return;
+        }
+        if (slot === 'A') contentA = text;
+        else              contentB = text;
         updateFileButtons();
       };
-      reader.readAsText(file, 'UTF-8');
+
+      reader.onerror = () => {
+        // reader.error carries a DOMException such as NotReadableError.
+        const reason = reader.error && reader.error.name ? ` (${reader.error.name})` : '';
+        showFileError(labelEl, metaEl, slot, `Datei konnte nicht gelesen werden${reason}`);
+      };
+
+      reader.onabort = () => {
+        showFileError(labelEl, metaEl, slot, 'Lesevorgang abgebrochen');
+      };
+
+      // readAsText itself can throw, e.g. when the file vanished after picking.
+      try {
+        reader.readAsText(file, 'UTF-8');
+      } catch (err) {
+        showFileError(labelEl, metaEl, slot, `Datei konnte nicht geöffnet werden (${err.name})`);
+      }
     });
   }
 
   readFile(fileA, document.getElementById('labelA'), document.getElementById('metaA'), 'A');
   readFile(fileB, document.getElementById('labelB'), document.getElementById('metaB'), 'B');
 
-  // Original und Vergleichsdatei tauschen. Bereits getroffene A/B-Entschei-
-  // dungen werden dabei verworfen: der LCS-Tie-Break ist nicht symmetrisch,
-  // diffLines(B,A) kann also anders gruppieren als diffLines(A,B) — eine
-  // Übernahme per Index würde Entscheidungen an falsche Zeilen hängen.
+  // Swap the original and the comparison file. Any A/B choices made so far are
+  // discarded: the LCS tie-break is not symmetric, so diffLines(B,A) may group
+  // differently than diffLines(A,B) — carrying choices over by index would
+  // attach them to the wrong rows.
   swapBtn.addEventListener('click', () => {
     const la = document.getElementById('labelA');
     const lb = document.getElementById('labelB');
@@ -707,25 +757,49 @@
     [la.title, lb.title]             = [lb.title, la.title];
     [ma.textContent, mb.textContent] = [mb.textContent, ma.textContent];
     [ma.title, mb.title]             = [mb.title, ma.title];
-    // Die File-Inputs selbst sind nicht beschreibbar; sie werden geleert,
-    // damit ein erneutes Auswählen derselben Datei wieder ein change-Event
-    // auslöst und nicht stumm bleibt.
+    // Move the error state with the metadata it belongs to.
+    const aErr = ma.classList.contains('error');
+    const bErr = mb.classList.contains('error');
+    ma.classList.toggle('error', bErr);
+    mb.classList.toggle('error', aErr);
+    // The file inputs themselves are not writable; they get cleared so that
+    // picking the same file again fires a change event instead of staying mute.
     fileA.value = ''; fileB.value = '';
     updateFileButtons();
-    if (contentA !== null && contentB !== null) compare(contentA, contentB);
+    if (contentA !== null && contentB !== null) runCompare();
   });
-  btn.addEventListener('click', () => compare(contentA, contentB));
+
+  btn.addEventListener('click', runCompare);
+
+  // Wraps compare() so an unexpected failure surfaces instead of leaving the
+  // UI in a half-built state. Very large inputs are the likeliest trigger.
+  function runCompare() {
+    if (contentA === null || contentB === null) return;
+    try {
+      compare(contentA, contentB);
+    } catch (err) {
+      console.error('compare() failed:', err);
+      document.getElementById('diffContainer').innerHTML =
+        '<div class="placeholder error">Vergleich fehlgeschlagen — die Dateien sind ' +
+        'möglicherweise zu groß.<br>Details in der Browser-Konsole.</div>';
+      document.getElementById('resultArea').style.display = 'none';
+      minimapEl.style.display = 'none';
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      navList = []; currentNav = -1;
+      updateNavUI();
+    }
+  }
 
   // ── State ─────────────────────────────────────────────────────────────────
-  let diffGroups = [];   // je Block: {rowIndex, type, rows: [op-Index, …]}
-  // Navigationsziele im aktuellen Auswahlmodus. Jedes Ziel ist eine Liste
-  // zusammenhängender op-Indizes: blockweise der ganze Block, zeilenweise
-  // je eine einzelne Zeile.
+  let diffGroups = [];   // per block: {rowIndex, type, rows: [op index, …]}
+  // Navigation targets for the current selection mode. Each target is a list
+  // of consecutive op indices: the whole block per block, a single row per line.
   let navList    = [];
   let currentNav = -1;
-  // Scroll-Sync: Wer zuletzt gescrollt hat, behält für kurze Zeit die Kontrolle.
-  // Ein einfaches Boolean reicht nicht — Scroll-Events feuern asynchron, das Flag
-  // wäre beim Eintreffen des Echo-Events längst wieder zurückgesetzt.
+  // Scroll sync: whoever scrolled last keeps control for a short while. A plain
+  // boolean is not enough — scroll events fire asynchronously, so the flag would
+  // already be reset by the time the echo event arrives.
   let scrollOwner     = null;
   let scrollOwnerTime = 0;
   const OWNER_HOLD_MS = 150;
@@ -738,7 +812,7 @@
     return true;
   }
 
-  // Zuordnung zwischen Diff-Zeilen (op-Index) und Ergebnis-Zeilen
+  // Mapping between diff rows (op index) and result rows
   let opToLine = [];
   let lineToOp = [];
   let paneObserver = null;
@@ -753,7 +827,7 @@
   const modeOptBlock = document.getElementById('modeOptBlock');
 
   function applyModeUI() {
-    // Thumb zeigt zur aktiven Seite: links = Zeilenweise, rechts = Blockweise
+    // The thumb points at the active side: left = per line, right = per block.
     modeToggle.classList.toggle('on', !lineMode);
     modeOptLine.classList.toggle('active', lineMode);
     modeOptBlock.classList.toggle('active', !lineMode);
@@ -764,8 +838,8 @@
   modeToggle.addEventListener('click', () => {
     lineMode = !lineMode;
     applyModeUI();
-    // Navigation folgt dem Modus. Die aktuelle Position bleibt erhalten: das
-    // neue Ziel ist dasjenige, das die bisher markierte erste Zeile enthält.
+    // Navigation follows the mode. The current position is preserved: the new
+    // target is the one containing the previously highlighted first row.
     if (navList.length) {
       const anchor = navList[currentNav] ? navList[currentNav][0] : null;
       buildNavList(anchor);
@@ -773,8 +847,8 @@
     }
   });
 
-  // Baut die Navigationsziele passend zum Auswahlmodus auf. `anchor` ist ein
-  // op-Index, dessen Ziel danach als aktuelles gesetzt wird.
+  // Builds the navigation targets for the current selection mode. `anchor` is
+  // an op index whose target becomes the current one afterwards.
   function buildNavList(anchor) {
     navList = lineMode
       ? allOps.reduce((acc, op, i) => {
@@ -806,8 +880,8 @@
     const sb = document.getElementById('scrollB');
     if (!sa) return;
 
-    // Jede Zeile des Ziels markieren; die Kantenklasse ergibt sich aus der
-    // Position innerhalb des Ziels, sodass ein durchgehender Rahmen entsteht.
+    // Mark every row of the target; the edge class follows from the position
+    // within the target so that one continuous frame results.
     const rows = navList[idx];
     rows.forEach((r, k) => {
       const edge = rows.length === 1      ? 'nav-single'
@@ -841,11 +915,10 @@
     nextBtn.disabled = currentNav >= navList.length - 1;
   }
 
-  // ── Zeilenhöhen der beiden Panes angleichen ──────────────────────────────
-  // Bricht eine Zeile auf mehrere Bildschirmzeilen um, muss die Gegenzeile
-  // denselben Platz einnehmen — sonst laufen die Spalten auseinander.
-  // Betrifft Leerzeilen ohne Gegenstück ebenso wie geänderte Zeilen
-  // unterschiedlicher Länge.
+  // ── Equalise row heights across both panes ────────────────────────────────
+  // When a row wraps onto several screen lines its counterpart must take up the
+  // same space, otherwise the columns drift apart. This affects blank rows
+  // without a counterpart as well as changed rows of differing length.
   function alignRowHeights() {
     const sa = document.getElementById('scrollA');
     const sb = document.getElementById('scrollB');
@@ -853,24 +926,24 @@
     const rowsA = sa.children, rowsB = sb.children;
     const n = Math.min(rowsA.length, rowsB.length);
 
-    // Erst alle Overrides lösen, damit die natürliche Höhe messbar ist …
+    // First drop all overrides so the natural height is measurable …
     for (let i = 0; i < n; i++) {
       rowsA[i].style.height = '';
       rowsB[i].style.height = '';
     }
-    // … dann in einem Durchgang messen …
+    // … then measure in one pass …
     const heights = new Array(n);
     for (let i = 0; i < n; i++) {
       heights[i] = Math.max(rowsA[i].offsetHeight, rowsB[i].offsetHeight);
     }
-    // … und erst danach schreiben (hält es bei 2 Reflows statt 2n).
+    // … and only write afterwards (keeps it at 2 reflows instead of 2n).
     for (let i = 0; i < n; i++) {
       rowsA[i].style.height = heights[i] + 'px';
       rowsB[i].style.height = heights[i] + 'px';
     }
   }
 
-  // Breitenänderung ⇒ andere Umbruchpunkte ⇒ neu ausrichten
+  // Width change ⇒ different wrap points ⇒ realign
   let alignPending = false;
   function scheduleAlign() {
     if (alignPending) return;
@@ -884,13 +957,13 @@
     });
   }
 
-  // ── Scroll-Sync Diff ↔ Ergebnis (zeilengenau über opToLine/lineToOp) ─────
+  // ── Scroll sync diff ↔ result (row-exact via opToLine/lineToOp) ───────────
   function resultOpen() {
     const ra = document.getElementById('resultArea');
     return ra && ra.classList.contains('open');
   }
 
-  // Index der Zeile, die bei Scroll-Position y oben steht (Binärsuche)
+  // Index of the row sitting at the top for scroll position y (binary search)
   function findRowAt(container, y) {
     const rows = container.children;
     if (!rows.length) return 0;
@@ -983,6 +1056,7 @@
     return seq;
   }
 
+  // Greedy approximation for inputs too large for the DP matrix.
   function fastLcs(a, b) {
     const bMap = new Map();
     b.forEach((v, i) => { if (!bMap.has(v)) bMap.set(v, i); });
@@ -1023,6 +1097,7 @@
     return ops;
   }
 
+  // Character-level diff within a changed row.
   function charDiff(a, b) {
     if (a === b) return [escHtml(a), escHtml(b)];
     const oa = [], ob = [];
@@ -1065,20 +1140,20 @@
     updateMergeHighlights();
   }
 
-  // Liefert den Ergebnistext sowie die Render-Elemente. Weggelassene Zeilen
-  // hinterlassen sonst keine Spur — für sie entsteht ein Marker-Element, das
-  // nur angezeigt wird und nicht in `lines` (und damit nicht in den Export)
-  // eingeht. Die Zuordnungen opToLine/lineToOp zeigen deshalb auf Positionen
-  // in `items`, denn danach richtet sich der Scroll-Sync über die DOM-Kinder.
+  // Returns the result text along with the render items. Omitted rows would
+  // otherwise leave no trace — a marker item is produced for them that is only
+  // displayed and does not enter `lines` (and thus not the export). That is why
+  // opToLine/lineToOp point at positions in `items`: the scroll sync works off
+  // the DOM children.
   function computeResult() {
-    const lines = [];   // nur echte Zeilen → Export
-    const items = [];   // Zeilen + Lücken-Marker → Anzeige
+    const lines = [];   // real rows only → export
+    const items = [];   // rows plus gap markers → display
     opToLine = [];
     lineToOp = [];
 
-    // Zwei Ursachen für eine Lücke, getrennt gezählt: eine A-Zeile wurde
-    // entfernt (B-Version gewählt, die sie nicht hat) oder eine B-Zeile wurde
-    // nicht übernommen. „Entfernt" wäre im zweiten Fall sachlich falsch.
+    // Two causes for a gap, counted separately: an A row was removed (the
+    // chosen B version lacks it) or a B row was not taken over. Calling the
+    // latter "removed" would be factually wrong.
     let gapRemoved = 0, gapSkipped = 0, gapFirstOp = -1;
 
     const flushGap = () => {
@@ -1096,14 +1171,14 @@
     allOps.forEach((op, oi) => {
       const text = op.type === 'equal' ? op.textA
                  : op.choice === 'B'   ? op.textB
-                 :                       op.textA;   // null oder 'A'
+                 :                       op.textA;   // null or 'A'
 
       if (text === null) {
-        // Diese Zeile entfällt im Ergebnis — Lücke sammeln
+        // This row drops out of the result — collect the gap.
         if (gapFirstOp < 0) gapFirstOp = oi;
-        if (op.textA !== null) gapRemoved++;   // A-Zeile fällt weg
-        else                   gapSkipped++;   // B-Zeile nicht übernommen
-        opToLine[oi] = items.length;           // Position des kommenden Markers
+        if (op.textA !== null) gapRemoved++;   // an A row falls away
+        else                   gapSkipped++;   // a B row was not taken over
+        opToLine[oi] = items.length;           // position of the upcoming marker
         return;
       }
 
@@ -1115,7 +1190,7 @@
       lines.push(text);
     });
 
-    flushGap();   // Lücke am Dateiende
+    flushGap();   // gap at the end of the file
 
     return { text: lines.join('\n'), lines, items };
   }
@@ -1132,9 +1207,9 @@
       return `<div class="line${it.isDiff ? ' diff-line' : ''}"><span class="line-num">${it.num}</span><span class="line-text">${escHtml(it.text)}</span></div>`;
     }).join('');
 
-    // Nach dem Neuaufbau ist scrollTop 0 — Position aus den Diff-Panes
-    // wiederherstellen. claimScroll verhindert, dass das dabei entstehende
-    // Scroll-Event die Diff-Panes nach oben zieht.
+    // After the rebuild scrollTop is 0 — restore the position from the diff
+    // panes. claimScroll keeps the resulting scroll event from pulling the diff
+    // panes back to the top.
     const sa = document.getElementById('scrollA');
     if (sa) { claimScroll('nav'); syncDiffToResult(sa); }
 
@@ -1153,14 +1228,14 @@
     const sb = document.getElementById('scrollB');
     if (!sa || !sb) return;
 
-    // Pfeile stehen jetzt in beiden Panes
+    // Arrows live in both panes.
     document.querySelectorAll('.pane-content .merge-btn').forEach(btn => {
       const op = allOps[parseInt(btn.dataset.op)];
       if (!op) return;
       btn.classList.toggle('active', op.choice === btn.dataset.choice);
     });
 
-    // Die jeweils gewählte Zeile markieren
+    // Mark the row that is currently chosen.
     for (let i = 0; i < allOps.length; i++) {
       const choice = allOps[i].choice;
       const rowA = sa.children[i];
@@ -1172,16 +1247,16 @@
     renderResult();
   }
 
-  // ── Result Area ───────────────────────────────────────────────────────────
+  // ── Result area ───────────────────────────────────────────────────────────
   document.getElementById('resultToggle').addEventListener('click', () => {
     document.getElementById('resultArea').classList.toggle('open');
-    // Scroll-Position sofort angleichen wenn Panel geöffnet wird
+    // Align the scroll position right away when the panel opens.
     const sa = document.getElementById('scrollA');
     if (sa) { claimScroll('nav'); syncDiffToResult(sa); }
   });
 
-  // Höhe des Merge-Bereichs ziehen. Nach oben ziehen vergrößert ihn; der
-  // Diff-Bereich behält mindestens MIN_DIFF_H, das Panel mindestens MIN_PANEL_H.
+  // Drag the height of the merge area. Dragging up enlarges it; the diff area
+  // keeps at least MIN_DIFF_H, the panel at least MIN_PANEL_H.
   const resizer = document.getElementById('resultResizer');
   const MIN_PANEL_H = 90;
   const MIN_DIFF_H  = 120;
@@ -1208,21 +1283,33 @@
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
-      // Ergebnis wieder auf die Diff-Panes ausrichten
+      // Realign the result with the diff panes.
       const sa = document.getElementById('scrollA');
       if (sa) { claimScroll('nav'); syncDiffToResult(sa); }
     };
 
-    // Auf window statt auf dem Griff: der Zeiger verlässt den 6 px schmalen
-    // Streifen beim Ziehen sofort, die Bewegung muss trotzdem ankommen.
+    // On window rather than on the grip: the pointer leaves the 6px strip
+    // immediately while dragging, yet the movement still has to arrive.
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
     e.preventDefault();
   });
 
-  document.getElementById('copyBtn').addEventListener('click', () => {
-    navigator.clipboard.writeText(computeResult().text);
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const resultBtn = document.getElementById('copyBtn');
+    try {
+      await navigator.clipboard.writeText(computeResult().text);
+      const original = resultBtn.textContent;
+      resultBtn.textContent = 'Kopiert';
+      setTimeout(() => { resultBtn.textContent = original; }, 1200);
+    } catch (err) {
+      // Denied clipboard permission or an insecure context land here.
+      console.error('clipboard write failed:', err);
+      const original = resultBtn.textContent;
+      resultBtn.textContent = 'Fehlgeschlagen';
+      setTimeout(() => { resultBtn.textContent = original; }, 1800);
+    }
   });
 
   function downloadText(text, filename) {
@@ -1255,7 +1342,7 @@
     let inDiffGroup = false;
     let groupIdx    = -1;
 
-    // Leere Merge-Cell für rechte Pane (gleiche Breite wie links → identische Textbreite)
+    // Empty merge-cell for the opposite pane, same width → identical text width
     const emptyCell = `<span class="merge-cell"></span>`;
 
     for (let i = 0; i < ops.length; i++) {
@@ -1271,8 +1358,8 @@
       op.groupIdx = op.type !== 'equal' ? groupIdx : -1;
       if (op.type !== 'equal') newGroups[groupIdx].rows.push(i);
 
-      // Pfeil in A zeigt nach rechts, Pfeil in B nach links: beide weisen zur
-      // Gegenseite und bedeuten „diese Version gilt".
+      // The arrow in A points right, the one in B points left: both face the
+      // opposite side and mean "this version applies".
       const cellA = op.type !== 'equal'
         ? `<span class="merge-cell"><button class="merge-btn" data-op="${i}" data-choice="A" title="A-Version übernehmen">&#8594;</button></span>`
         : emptyCell;
@@ -1321,12 +1408,12 @@
     const sa = document.getElementById('scrollA');
     const sb = document.getElementById('scrollB');
 
-    // Höhen angleichen, bevor irgendetwas offsetTop ausliest
+    // Equalise heights before anything reads offsetTop.
     alignRowHeights();
 
-    // Nur die Breite verschiebt die Umbruchpunkte. Höhenänderungen — etwa beim
-    // Ziehen des Merge-Bereichs — werden übersprungen, sonst liefe der
-    // Höhenausgleich bei jedem Frame des Drags.
+    // Only the width shifts the wrap points. Height changes — such as while
+    // dragging the merge area — are skipped, otherwise the height pass would
+    // run on every frame of the drag.
     if (paneObserver) paneObserver.disconnect();
     let lastPaneWidth = sa.clientWidth;
     paneObserver = new ResizeObserver(() => {
@@ -1350,14 +1437,14 @@
       syncDiffToResult(sb);
     });
 
-    // Scroll vom Merge-Ergebnis zurück auf die Diff-Panes
+    // Scrolling in the merge result feeds back to the diff panes.
     const rc = document.getElementById('resultContent');
     rc.addEventListener('scroll', () => {
       if (!claimScroll('R')) return;
       syncResultToDiff(rc);
     });
 
-    // Pfeile sitzen in beiden Panes, daher beide Panes abhören
+    // Arrows sit in both panes, so listen on both.
     const onMergeClick = e => {
       const mbtn = e.target.closest('.merge-btn');
       if (!mbtn) return;
@@ -1379,11 +1466,9 @@
     document.getElementById('resultArea').style.display = '';
     renderResult();
   }
-</script>
 
-<footer>
-  <span>thought up by human, created by ai</span>
-  <span>v0.8.1</span>
-</footer>
+  // ── Footer ────────────────────────────────────────────────────────────────
+  document.getElementById('appVersion').textContent = `v${APP_VERSION}`;
+</script>
 </body>
 </html>
