@@ -277,6 +277,19 @@
     .dot-changed { background: rgba(220,140,30,.6); border: 1px solid #dc8c1e; }
     .dot-removed { background: rgba(220,60,60,.6);  border: 1px solid #dc3c3c; }
 
+    /* Warning strip above the panes, e.g. when the approximation is in use */
+    .notice {
+      flex-shrink: 0;
+      padding: 6px 16px;
+      background: rgba(220,140,30,.18);
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .notice[hidden] { display: none; }
+
     /* ── Main layout ─────────────────────────────────────────────────────── */
     .diff-wrapper {
       display: flex; flex: 1; overflow: hidden; min-height: 0;
@@ -592,6 +605,9 @@
   </div>
 </div>
 
+<!-- Shown when the comparison falls back to the approximation -->
+<div class="notice" id="notice" hidden></div>
+
 <!-- Diff panes and minimap -->
 <div class="diff-wrapper">
   <div class="diff-container" id="diffContainer">
@@ -634,7 +650,7 @@
   // ── Version ───────────────────────────────────────────────────────────────
   // Single source of truth for the version; keep in sync with releases.md.
   // Every other place (footer, future cache busting) derives from this.
-  const APP_VERSION = '0.9.0';
+  const APP_VERSION = '0.10.0';
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   const html = document.documentElement;
@@ -654,6 +670,20 @@
     applyThemeUI(html.dataset.theme);
     updateMinimapViewport();
   });
+
+  // ── Limits ────────────────────────────────────────────────────────────────
+  // Hard limits: larger inputs are rejected rather than accepted with a
+  // warning. Both are checked, because size in bytes and row count are
+  // independent — 200 rows of 2000 characters cost more time than 50000 short
+  // ones, so neither figure alone is a reliable guard.
+  const MAX_FILE_BYTES = 5 * 1024 * 1024;   // 5 MB
+  const MAX_FILE_LINES = 20_000;
+
+  // Above this many DP cells (m × n) the exact LCS is replaced by the greedy
+  // approximation. 25M cells ≈ 5000 × 5000 rows, costing roughly 50 MB and
+  // 185 ms. The approximation is markedly worse on files with recurring lines
+  // (closing braces, blank lines), so whenever it kicks in the UI says so.
+  const MAX_LCS_CELLS = 25_000_000;
 
   // ── File loading ──────────────────────────────────────────────────────────
   const fileA = document.getElementById('fileA');
@@ -698,6 +728,16 @@
     updateFileButtons();
   }
 
+  // Counts newlines without allocating an array of all lines — the file may be
+  // up to MAX_FILE_BYTES, and split() would materialise every row.
+  function countLines(text) {
+    let n = 1;
+    for (let i = 0; i < text.length; i++) {
+      if (text.charCodeAt(i) === 10) n++;
+    }
+    return n;
+  }
+
   function readFile(input, labelEl, metaEl, slot) {
     input.addEventListener('change', () => {
       const file = input.files[0];
@@ -708,12 +748,26 @@
       metaEl.title        = metaEl.textContent;
       metaEl.classList.remove('error');
 
+      // Check the size before reading, so an oversized file is never loaded.
+      if (file.size > MAX_FILE_BYTES) {
+        showFileError(labelEl, metaEl, slot,
+          `Datei zu groß: ${formatSize(file.size)} — Maximum ${formatSize(MAX_FILE_BYTES)}`);
+        return;
+      }
+
       const reader = new FileReader();
 
       reader.onload = e => {
         const text = e.target.result;
         if (typeof text !== 'string') {
           showFileError(labelEl, metaEl, slot, 'Datei konnte nicht als Text gelesen werden');
+          return;
+        }
+        // The row count is only known once the text is available.
+        const lines = countLines(text);
+        if (lines > MAX_FILE_LINES) {
+          showFileError(labelEl, metaEl, slot,
+            `Zu viele Zeilen: ${lines.toLocaleString('de-DE')} — Maximum ${MAX_FILE_LINES.toLocaleString('de-DE')}`);
           return;
         }
         if (slot === 'A') contentA = text;
@@ -783,6 +837,7 @@
         '<div class="placeholder error">Vergleich fehlgeschlagen — die Dateien sind ' +
         'möglicherweise zu groß.<br>Details in der Browser-Konsole.</div>';
       document.getElementById('resultArea').style.display = 'none';
+      document.getElementById('notice').hidden = true;
       minimapEl.style.display = 'none';
       prevBtn.disabled = true;
       nextBtn.disabled = true;
@@ -1040,7 +1095,7 @@
   // ── LCS ───────────────────────────────────────────────────────────────────
   function lcs(a, b) {
     const m = a.length, n = b.length;
-    if (m * n > 4_000_000) return fastLcs(a, b);
+    if (m * n > MAX_LCS_CELLS) return fastLcs(a, b);
     const dp = Array.from({length: m + 1}, () => new Uint16Array(n + 1));
     for (let i = m - 1; i >= 0; i--)
       for (let j = n - 1; j >= 0; j--)
@@ -1331,7 +1386,22 @@
   function compare(textA, textB) {
     const linesA = textA.split('\n');
     const linesB = textB.split('\n');
-    const ops    = diffLines(linesA, linesB);
+
+    // Say so when the exact LCS is out of reach. Without this note a result of
+    // "everything changed" looks like a defect rather than a known limitation.
+    const notice = document.getElementById('notice');
+    if (linesA.length * linesB.length > MAX_LCS_CELLS) {
+      notice.textContent =
+        `Hinweis: Bei dieser Zeilenzahl (${linesA.length.toLocaleString('de-DE')} / ` +
+        `${linesB.length.toLocaleString('de-DE')}) wird ein Näherungsverfahren verwendet. ` +
+        `Bei Dateien mit vielen wiederkehrenden Zeilen kann es mehr Unterschiede anzeigen, ` +
+        `als tatsächlich bestehen.`;
+      notice.hidden = false;
+    } else {
+      notice.hidden = true;
+    }
+
+    const ops = diffLines(linesA, linesB);
     allOps = ops;
 
     let numA = 0, numB = 0;
