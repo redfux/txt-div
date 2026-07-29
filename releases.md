@@ -5,6 +5,28 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.9.0] – 2026-07-28
+
+Abgleich mit dem Coding-Masterprompt.
+
+### Added
+- Fehlerbehandlung beim Dateilesen: `reader.onerror`, `reader.onabort` und ein `try/catch` um `readAsText()`. Die Meldung erscheint rot an der betroffenen Datei, der Slot wird geleert und „Vergleichen" deaktiviert — bisher schlug ein Lesefehler stillschweigend fehl
+- `runCompare()` kapselt den Vergleich: bei einem unerwarteten Fehler (etwa zu großen Dateien) erscheint ein Hinweis statt einer halb aufgebauten Ansicht, Details gehen in die Konsole
+- Rückmeldung beim Kopieren: der Button quittiert „Kopiert" bzw. „Fehlgeschlagen", falls die Zwischenablage nicht verfügbar ist
+
+### Changed
+- Versionsnummer liegt nur noch in der Konstante `APP_VERSION`; der Footer wird daraus gefüllt. Zuvor war sie im Markup hart kodiert und lief bei 0.3.4 und 0.3.5 versehentlich hinterher
+- Alle Inline-Kommentare in `index.html` von Deutsch auf **Englisch** umgestellt (Masterprompt: Code englisch, `.md`-Dateien deutsch)
+- `bugs.md` von Stand 0.1.0 auf aktuell gebracht — 15 seither behobene Fehler ergänzt. Der Eintrag „Spalten scrollten nicht synchron" ist als überholt markiert, da die dort genannte Lösung (`syncLocked`) sich in 0.3.6 als wirkungslos erwies
+- `architecture.md` von Stand 0.1.0 auf aktuell gebracht: Merge-Modell, Scroll-Owner-Prinzip, Zeilenausrichtung, Navigationsziele, aktuelle DOM-Struktur, Fehlerbehandlung und bekannte Grenzen
+- `README.md` um die Merge-Funktion erweitert, die bisher gar nicht beschrieben war — dazu Tausch-Button, Auswahlmodus, Drag & Drop, Lücken-Marker, Kopieren/Speichern und ein Abschnitt zu den Grenzen
+
+### Notes
+- Der im Abgleich gemeldete **Kontrastfehler im Dark Mode bestand nicht.** Die Nachmessung ergab 4,85:1 (nötig 4,5:1); der erste Wert von 2,0:1 entstand, weil im Messskript nach dem Theme-Wechsel ohne erzwungenen Reflow gelesen wurde und so die helle Textfarbe gegen den dunklen Hintergrund verglichen wurde. Dokumentiert in `bugs.md` unter „Nicht reproduzierbar / verworfen"
+- Neu eingeführt wurde lediglich die Variable `--error`; im Dark-Theme auf `#ff8f8f` gesetzt, was 5,7:1 ergibt
+
+---
+
 ## [0.8.1] – 2026-07-28
 
 ### Added
