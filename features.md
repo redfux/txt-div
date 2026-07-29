@@ -33,7 +33,7 @@ Anforderungen und geplante Funktionen für txt-div.
 - Zeilenweise Verlinkung zwischen den Spalten (Verbindungslinien bei Unterschieden)
 - Export des Diff-Ergebnisses als HTML oder PDF
 - Einstellbarer Kontext (wie viele gleiche Zeilen um einen Diff herum angezeigt werden)
-- **Myers-Diff statt der Näherung:** würde den exakten Vergleich auch oberhalb von 5.000 Zeilen ermöglichen (O((m+n)·d) Zeit, O(m+n) Speicher statt O(m×n)). Aufwand: eigene Algorithmus-Implementierung inkl. Pfad-Rekonstruktion, Präfix-/Suffix-Trimming und Testabdeckung; `charDiff` müsste separat bewertet werden, da dort die DP-Matrix oft günstiger ist
+- **Myers-Diff statt der Näherung:** würde den exakten Vergleich auch oberhalb von 8.000 Zeilen ermöglichen (O((m+n)·d) Zeit, O(m+n) Speicher statt O(m×n)). Nach dem Heraufsetzen der Schwelle und der Reparatur der Näherung nur noch für einen Randfall relevant: Dateien über 8.000 Zeilen **mit Löschungen oder verschobenen Blöcken**, wo die Näherung etwa die Hälfte des Optimums erreicht. Aufwand: eigene Algorithmus-Implementierung inkl. Pfad-Rekonstruktion, Präfix-/Suffix-Trimming und Testabdeckung; `charDiff` müsste separat bewertet werden, da dort die DP-Matrix oft günstiger ist
 - **Virtuelles Scrollen:** oberhalb von ~20.000 Zeilen ist das DOM der Engpass (11 Knoten je Zeile). Würde tief in `alignRowHeights`, `findRowAt` und den Scroll-Sync eingreifen, da diese auf real existierenden Zeilen aufbauen
 
 ### Nicht umsetzbar

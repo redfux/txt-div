@@ -106,6 +106,18 @@ Bekannte Fehler, gemeldete Probleme und deren Behebung.
 - **Ursache:** Es gab weder `reader.onerror` noch eine Absicherung um `readAsText()`.
 - **Lösung:** `onerror`, `onabort` und ein `try/catch` melden den Fehler an der betroffenen Datei; der Slot wird geleert und „Vergleichen" deaktiviert. Zusätzlich fängt `runCompare()` unerwartete Fehler im Vergleich ab und zeigt einen Hinweis statt einer halb aufgebauten Ansicht.
 
+### Näherungsverfahren brach bei wiederkehrenden Zeilen zusammen
+- **Version:** 0.11.0
+- **Problem:** Oberhalb der Schwelle für die exakte Berechnung wurden bei Dateien mit vielen gleichlautenden Zeilen fast alle Zeilen als geändert angezeigt. Auf zwei echten Cisco-Switch-Konfigurationen (je 4.628 Zeilen, davon nur 12 % eindeutig) hätte das Verfahren **529** statt 4.450 gemeinsamer Zeilen gefunden, obwohl real nur 178 Zeilen abweichen.
+- **Ursache:** `fastLcs` merkte sich pro Zeileninhalt nur das *erste* Vorkommen in Datei B. Da der Suchzeiger monoton steigt, wurde für jede weitere gleichlautende Zeile nie mehr ein Treffer gefunden, sobald er diese einzige Position passiert hatte. Bei Cisco-Configs mit 282× `!` und 178× identischen Interface-Zeilen genügte eine eingefügte Zeile, um die Zuordnung ab dort zu verlieren.
+- **Lösung:** Es werden alle Positionen je Zeileninhalt vorgehalten; der erste Treffer ab dem Suchzeiger wird per Binärsuche bestimmt. Auf denselben Dateien liefert das 4.450 gemeinsame Zeilen — das exakte Optimum — bei 3–4 ms.
+- **Rest-Einschränkung:** Weil stets der früheste Treffer genommen wird, bleibt das Verfahren bei Löschungen und verschobenen Blöcken bei etwa 50 % des Optimums (vorher 11 %). Bei Einfügungen und geänderten Zeilen erreicht es 100 %.
+
+### Schwelle für die exakte Berechnung zu knapp bemessen
+- **Version:** 0.11.0
+- **Problem:** Die Grenze von 25 Mio. Zellen lag nur 7 % über dem Bedarf realer Switch-Konfigurationen (4.628 Zeilen = 21,4 Mio. Zellen). Eine um 623 Zeilen größere Config kippte das Ergebnis von 178 auf 4.678 gemeldete Änderungen — kein gleitender Übergang, sondern ein Umschlagen ins Unbrauchbare.
+- **Lösung:** Schwelle auf 64 Mio. Zellen (≈ 8.000 × 8.000 Zeilen) erhöht. Kosten am oberen Rand: 390 ms und ~122 MB. Verifiziert mit auf 5.251 und 7.498 Zeilen erweiterten Konfigurationen — beide werden exakt berechnet und liefern konstant 178 Änderungen.
+
 ---
 
 ## Nicht reproduzierbar / verworfen

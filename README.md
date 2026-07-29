@@ -70,17 +70,20 @@ Beim Start folgt die App der System-Einstellung für Hell/Dunkel. Über den Scha
 
 **Maximale Dateigröße:** 5 MB und 20.000 Zeilen. Größere Dateien werden mit einer Meldung abgelehnt, damit der Browser nicht blockiert. Beide Werte gelten je Datei.
 
-**Genauigkeit bei großen Dateien:** Bis etwa 5.000 Zeilen wird der Vergleich exakt berechnet. Darüber schaltet die App auf ein schnelleres Näherungsverfahren um und zeigt einen Hinweis. Bei Dateien mit sehr vielen gleichen Zeilen — etwa Code mit vielen Klammern und Leerzeilen — kann die Näherung mehr Unterschiede anzeigen, als tatsächlich bestehen. Bei Dateien mit unterscheidbaren Zeilen bleibt das Ergebnis auch dort zuverlässig.
+**Genauigkeit bei großen Dateien:** Bis etwa 8.000 Zeilen wird der Vergleich exakt berechnet. Darüber schaltet die App auf ein schnelleres Verfahren um und zeigt einen Hinweis. Dieses liefert bei hinzugefügten und geänderten Zeilen dasselbe Ergebnis, kann aber bei gelöschten oder verschobenen Abschnitten mehr Unterschiede anzeigen, als tatsächlich bestehen.
 
 Zur Orientierung (gemessene Werte):
 
 | Umfang | Dauer |
 |---|---|
 | 1.000 Zeilen | ~0,15 s |
-| 5.000 Zeilen | ~0,6 s |
+| 4.600 Zeilen (Switch-Config) | ~0,5 s |
+| 8.000 Zeilen | ~0,9 s |
 | 20.000 Zeilen | ~2,3 s |
 
 Sehr lange Zeilen wirken stärker als die Dateigröße: 200 Zeilen mit je 2.000 Zeichen brauchen länger als 50.000 kurze Zeilen.
+
+Geprüft mit zwei Cisco-Switch-Konfigurationen à 4.628 Zeilen: das Ergebnis stimmt mit GNU `diff` überein (178 Änderungen), der Vergleich dauert 0,53 s.
 
 **Weitere Grenzen:**
 

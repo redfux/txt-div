@@ -28,7 +28,7 @@ Die Version steht ausschließlich in der Konstante `APP_VERSION` im Skript; der 
 
 ### Grenzen des Verfahrens und Näherung
 
-Die exakte DP-Matrix kostet O(m × n) an Speicher und Zeit. Ab `MAX_LCS_CELLS` (25 Mio. Zellen, ≈ 5.000 × 5.000 Zeilen) übernimmt daher die greedy Näherung `fastLcs`.
+Die exakte DP-Matrix kostet O(m × n) an Speicher und Zeit. Ab `MAX_LCS_CELLS` (64 Mio. Zellen, ≈ 8.000 × 8.000 Zeilen) übernimmt daher die greedy Näherung `fastLcs`.
 
 Messwerte für die exakte Berechnung:
 
@@ -37,10 +37,27 @@ Messwerte für die exakte Berechnung:
 | 2.000 | 4 Mio. | 8 MB | 37 ms |
 | 4.000 | 16 Mio. | 31 MB | 130 ms |
 | 6.000 | 36 Mio. | 69 MB | 267 ms |
+| 7.988 | 63,8 Mio. | ~122 MB | 390 ms |
 
-**Die Näherung hat eine wichtige Schwäche:** `fastLcs` merkt sich pro Zeileninhalt nur das *erste* Vorkommen in B, und der Suchindex `jMin` steigt monoton. Bei Dateien mit vielen wiederkehrenden Zeilen — schließende Klammern, Leerzeilen, `return;` — bricht die Zuordnung nach der ersten Einfügung zusammen. Direkter Vergleich auf identischen Daten (1.500 Zeilen mit Füllzeilen): der exakte LCS findet **1.440** gemeinsame Zeilen, `fastLcs` nur **5**.
+Die Schwelle ist am Hauptanwendungsfall bemessen: Switch- und WLC-Konfigurationen mit einigen tausend Zeilen. Zwei echte Configs mit je 4.628 Zeilen benötigen 21,4 Mio. Zellen — bei der früheren Grenze von 25 Mio. blieben also nur 7 % Reserve.
 
-Deshalb zeigt die Oberfläche eine Hinweisleiste, sobald die Näherung greift. Bei Dateien mit eindeutigen Zeilen liefert sie weiterhin brauchbare Ergebnisse — geprüft mit 20.000 Zeilen, wo nur der eine tatsächliche Unterschied gefunden wurde.
+Der maximale DP-Wert entspricht der Länge der gemeinsamen Teilfolge und bleibt bei 8.000 Zeilen weit unter der `Uint16Array`-Grenze von 65.535.
+
+### Verhalten der Näherung
+
+`fastLcs` läuft einmal durch A und nimmt jeweils den frühesten noch verfügbaren Treffer in B. Dazu hält es **alle** Positionen je Zeileninhalt vor und bestimmt den ersten Treffer ab dem Suchzeiger per Binärsuche.
+
+Eine frühere Fassung speicherte nur das *erste* Vorkommen. Das brach bei Dateien mit vielen wiederkehrenden Zeilen zusammen: sobald der Suchzeiger diese einzige Position passiert hatte, wurde für jede weitere gleichlautende Zeile nie mehr ein Treffer gefunden. Auf zwei echten Switch-Configs (4.628 Zeilen, nur 12 % davon eindeutig) fand sie **529** statt 4.450 gemeinsamer Zeilen.
+
+Güte der aktuellen Fassung, gemessen an denselben Dateien gegen die exakte Berechnung:
+
+| Änderungsart | Anteil des Optimums |
+|---|---|
+| Einfügung, geänderte Zeilen | **100 %** |
+| Löschung | ~50 % |
+| verschobener Block | ~50 % |
+
+Sie bleibt also eine Näherung: weil stets der früheste Treffer genommen wird, verliert sie bei Löschungen und Verschiebungen die Synchronisation. Deshalb zeigt die Oberfläche eine Hinweisleiste, sobald sie greift.
 
 Die saubere Lösung wäre ein Myers-Diff (O((m+n)·d) Zeit, O(m+n) Speicher, exakt). Bewusst zurückgestellt, siehe `features.md`.
 
@@ -181,7 +198,7 @@ Die Verschiebung des Theme-Switch-Thumbs ist auf `.theme-toggle` eingeschränkt.
 ## Bekannte Grenzen
 
 - **Kein Dateipfad:** Browser geben ihn nicht heraus. Das `File`-Objekt kennt keinen, `input.value` liefert bewusst `C:\fakepath\<name>`, `webkitRelativePath` ist nur bei Ordner-Auswahl gefüllt. Angezeigt werden daher Größe und Änderungsdatum.
-- **Näherung zwischen 5.000 und 20.000 Zeilen:** In diesem Bereich ist die exakte Matrix nicht mehr tragfähig (bei 20.000 × 20.000 wären es 400 Mio. Zellen und ~800 MB). Die Oberfläche weist darauf hin; bei Dateien mit vielen identischen Zeilen kann das Ergebnis dort zu viele Unterschiede zeigen.
+- **Näherung zwischen 8.000 und 20.000 Zeilen:** In diesem Bereich ist die exakte Matrix nicht mehr tragfähig (bei 20.000 × 20.000 wären es 400 Mio. Zellen und ~800 MB). Die Oberfläche weist darauf hin. Bei Einfügungen und Änderungen liefert die Näherung dort das exakte Ergebnis, bei Löschungen und verschobenen Blöcken etwa die Hälfte des Optimums.
 - **Bedienelemente ohne Tastaturzugang:** Theme-Switch, Modus-Switch, Ergebnis-Aufklappen, Ziehgriff und Minimap sind noch nicht fokussierbar.
 - **Mobil eng:** Bei 375 px Breite bleiben pro Spalte rund 93 px Textbreite. Technisch responsive, praktisch kaum nutzbar.
 - **Abweichung vom Masterprompt:** Google Material Design ist nicht als gestalterische Grundlage verwendet; das Projekt nutzt ein eigenes Farbschema. Ebenso ist das GitHub-Repo öffentlich statt privat — das ist Voraussetzung für GitHub Pages im kostenlosen Plan.
