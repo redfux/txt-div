@@ -5,6 +5,28 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.11.0] – 2026-07-30
+
+Validiert an zwei echten Cisco-Switch-Konfigurationen mit je 4.628 Zeilen, von denen nur 12 % eindeutig sind (282× `!`, 178× identische Interface-Zeilen). Referenz für alle Angaben ist GNU `diff`, das 178 Änderungen findet.
+
+### Fixed
+- **Näherungsverfahren brach bei wiederkehrenden Zeilen zusammen.** Es merkte sich pro Zeileninhalt nur das *erste* Vorkommen in Datei B; sobald der Suchzeiger daran vorbei war, wurde für jede weitere gleichlautende Zeile nie mehr ein Treffer gefunden. Auf den Testkonfigurationen bedeutete das **529 statt 4.450** gemeinsamer Zeilen — praktisch die gesamte Datei erschien geändert.
+  - Jetzt werden **alle** Vorkommen je Zeileninhalt vorgehalten und der erste Treffer ab dem Suchzeiger per Binärsuche bestimmt. Ergebnis auf denselben Dateien: **4.450**, also das exakte Optimum, bei 3–4 ms Laufzeit
+  - Auch oberhalb der Schwelle korrekt: bei künstlich auf 8.618 und 11.978 Zeilen erweiterten Konfigurationen weiterhin genau 178 erkannte Änderungen
+  - **Weiterhin eine Näherung:** Da stets der früheste Treffer genommen wird, bleibt sie bei Löschungen und verschobenen Blöcken schwächer als die exakte Berechnung — gemessen etwa 50 % des Optimums (vorher 11 %). Bei Einfügungen und geänderten Zeilen erreicht sie 100 %
+
+### Changed
+- Schwelle für den exakten LCS von 25 auf **64 Mio. Zellen** erhöht (≈ 8.000 × 8.000 Zeilen). Die Testkonfigurationen benötigen 21,4 Mio. Zellen — die bisherige Grenze ließ also nur 7 % Reserve, und 623 zusätzliche Zeilen hätten das Ergebnis von 178 auf 4.678 gemeldete Änderungen kippen lassen
+  - Kosten am obereren Rand: 7.988 Zeilen = 63,8 Mio. Zellen, 390 ms Diff-Berechnung, ~122 MB für die Matrix
+  - Der maximale DP-Wert bleibt mit 7.988 weit unter der `Uint16Array`-Grenze von 65.535
+
+### Notes
+- Messwerte mit den Originaldateien: 21,4 Mio. Zellen, exakte Berechnung, 131 ms für den Diff, **533 ms** für den vollständigen Vergleich inklusive Rendering, 10 MB Heap
+- Ergebnis stimmt mit GNU `diff` überein: 178 Änderungsblöcke, 4.450 gleiche Zeilen
+- Myers-Diff bleibt zurückgestellt. Er wäre nur noch für Dateien über 8.000 Zeilen mit Löschungen oder verschobenen Blöcken ein Gewinn; siehe `features.md`
+
+---
+
 ## [0.10.0] – 2026-07-29
 
 ### Added

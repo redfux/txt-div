@@ -650,7 +650,7 @@
   // ── Version ───────────────────────────────────────────────────────────────
   // Single source of truth for the version; keep in sync with releases.md.
   // Every other place (footer, future cache busting) derives from this.
-  const APP_VERSION = '0.10.0';
+  const APP_VERSION = '0.11.0';
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   const html = document.documentElement;
@@ -680,10 +680,11 @@
   const MAX_FILE_LINES = 20_000;
 
   // Above this many DP cells (m × n) the exact LCS is replaced by the greedy
-  // approximation. 25M cells ≈ 5000 × 5000 rows, costing roughly 50 MB and
-  // 185 ms. The approximation is markedly worse on files with recurring lines
-  // (closing braces, blank lines), so whenever it kicks in the UI says so.
-  const MAX_LCS_CELLS = 25_000_000;
+  // fallback. 64M cells ≈ 8000 × 8000 rows, costing about 122 MB for the
+  // matrix and 750 ms. Sized to cover switch and WLC configurations, which run
+  // to a few thousand lines: a 4600-line pair needs 21M cells, so the previous
+  // 25M left almost no headroom. Whenever the fallback kicks in the UI says so.
+  const MAX_LCS_CELLS = 64_000_000;
 
   // ── File loading ──────────────────────────────────────────────────────────
   const fileA = document.getElementById('fileA');
@@ -1111,15 +1112,39 @@
     return seq;
   }
 
-  // Greedy approximation for inputs too large for the DP matrix.
+  // Greedy fallback for inputs too large for the DP matrix. Runs once through a
+  // and always takes the earliest still-available match in b.
+  //
+  // It records *every* position of each line and binary-searches the first one
+  // at or after the cursor. Keeping only the first position — as an earlier
+  // version did — makes this collapse on files with many recurring lines: once
+  // the cursor has passed that single recorded position, no further match is
+  // ever found. On a pair of real 4600-line switch configs that meant 529
+  // instead of 4450 common lines, i.e. almost everything reported as changed.
+  //
+  // Still an approximation, not an exact LCS: because it always grabs the
+  // earliest match, it stays weaker than the DP on deletions and moved blocks.
   function fastLcs(a, b) {
-    const bMap = new Map();
-    b.forEach((v, i) => { if (!bMap.has(v)) bMap.set(v, i); });
+    const positions = new Map();
+    for (let i = 0; i < b.length; i++) {
+      let list = positions.get(b[i]);
+      if (!list) { list = []; positions.set(b[i], list); }
+      list.push(i);
+    }
+
     const seq = [];
-    let jMin = 0;
+    let cursor = 0;
     for (let i = 0; i < a.length; i++) {
-      const j = bMap.get(a[i]);
-      if (j !== undefined && j >= jMin) { seq.push([i, j]); jMin = j + 1; }
+      const list = positions.get(a[i]);
+      if (!list) continue;
+      // First entry >= cursor; the lists are ascending by construction.
+      let lo = 0, hi = list.length - 1, hit = -1;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (list[mid] >= cursor) { hit = list[mid]; hi = mid - 1; }
+        else                       lo = mid + 1;
+      }
+      if (hit >= 0) { seq.push([i, hit]); cursor = hit + 1; }
     }
     return seq;
   }
