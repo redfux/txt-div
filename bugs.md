@@ -113,6 +113,13 @@ Bekannte Fehler, gemeldete Probleme und deren Behebung.
 - **Lösung:** Es werden alle Positionen je Zeileninhalt vorgehalten; der erste Treffer ab dem Suchzeiger wird per Binärsuche bestimmt. Auf denselben Dateien liefert das 4.450 gemeinsame Zeilen — das exakte Optimum — bei 3–4 ms.
 - **Rest-Einschränkung:** Weil stets der früheste Treffer genommen wird, bleibt das Verfahren bei Löschungen und verschobenen Blöcken bei etwa 50 % des Optimums (vorher 11 %). Bei Einfügungen und geänderten Zeilen erreicht es 100 %.
 
+### Minimap-Aufbau blockierte bei vielen Unterschieden minutenlang
+- **Version:** 0.11.3
+- **Problem:** Der Vergleich zweier Konfigurationen mit 9.268 Zeilen und rund 3.000 erkannten Unterschieden brauchte 69,6 Sekunden. Der Browser wirkte eingefroren.
+- **Ursache:** Beim Umbau auf prozentuale Positionen (0.11.2) wurde `minimapEl.clientHeight` in die Schleife verschoben. Ein Layout-Zugriff direkt nach dem Einfügen des vorherigen Segments erzwingt jeweils einen Reflow — bei 3.000 Segmenten also 3.000 Layout-Durchläufe. Messung der Phasen: 65,1 s von 69,6 s entfielen allein auf `buildMinimap()`, während `diffLines` 9 ms und `charDiff` 92 ms brauchten.
+- **Lösung:** Segmenthöhe einmal vor der Schleife berechnen, Segmente in einem `DocumentFragment` sammeln und gebündelt einfügen. Ergebnis: 585 ms statt 69,6 s.
+- **Merke:** Bei den Referenz-Configs mit nur 178 Unterschieden fiel der Fehler nicht auf (~60 ms). Performance-Regressionen dieser Art zeigen sich erst bei vielen Elementen — Testdaten mit hoher Diff-Anzahl gehören dazu.
+
 ### Minimap markierte Unterschiede in Bereichen ohne Unterschiede
 - **Version:** 0.11.2
 - **Problem:** Am unteren Ende der Navigationsleiste erschienen farbige Markierungen, obwohl der letzte Unterschied deutlich weiter oben lag. Bei den Referenz-Configs (letzter Unterschied in Zeile 4.472 von 4.628) endete das unterste Segment bei 101,1 % der Leistenhöhe statt bei 96,6 % — es lag also außerhalb und wurde nur durch `overflow: hidden` beschnitten.
