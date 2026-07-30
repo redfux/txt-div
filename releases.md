@@ -5,6 +5,20 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionier
 
 ---
 
+## [0.11.3] – 2026-07-30
+
+### Fixed
+- **Minimap-Aufbau blockierte bei vielen Unterschieden minutenlang.** Ein Vergleich zweier 9.268-Zeilen-Konfigurationen mit rund 3.000 erkannten Unterschieden brauchte **69,6 Sekunden**, davon **65,1 Sekunden allein in `buildMinimap()`**
+  - **Ursache:** In 0.11.2 wurde `minimapEl.clientHeight` beim Umbau auf prozentuale Positionen versehentlich *in die Schleife* verschoben. Jeder Zugriff nach dem Einfügen des vorherigen Segments erzwingt einen Reflow — bei 3.000 Segmenten also 3.000 Layout-Durchläufe. Bei wenigen Unterschieden (178 in den Referenz-Configs) blieb das unbemerkt
+  - **Lösung:** Die Höhe wird einmal vor der Schleife berechnet; die Segmente werden in einem `DocumentFragment` gesammelt und in einem Zug eingefügt
+  - Gemessen: **69,6 s → 585 ms**, also Faktor 119
+
+### Notes
+- Aufgefallen beim Test mit neu erzeugten Konfigurationspaaren (1×48 bis 8×48 Ports). Laufzeiten danach: 91 ms (1×48), 134 ms (2×48), 275 ms (4×48), 553 ms (8×48), 377 ms für die Referenz switch1/switch2
+- Die Testpaare liegen außerhalb des Repos unter `Documents/Claude/testdaten/` samt Generator und Beschreibung der eingebauten Unterschiede
+
+---
+
 ## [0.11.2] – 2026-07-30
 
 ### Fixed

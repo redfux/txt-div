@@ -650,7 +650,7 @@
   // ── Version ───────────────────────────────────────────────────────────────
   // Single source of truth for the version; keep in sync with releases.md.
   // Every other place (footer, future cache busting) derives from this.
-  const APP_VERSION = '0.11.2';
+  const APP_VERSION = '0.11.3';
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   const html = document.documentElement;
@@ -1099,14 +1099,21 @@
   function buildMinimap(ops, totalRows) {
     minimapTrack.innerHTML = '';
     if (!totalRows) return;
+    // clientHeight is read once, outside the loop: reading it after each
+    // insertion forces a reflow per segment. With ~3000 segments that alone
+    // took 65 seconds.
+    const segH = Math.max(2, minimapEl.clientHeight / totalRows);
+    // Collect in a fragment so the segments land in the document in one go.
+    const frag = document.createDocumentFragment();
     ops.forEach((op, i) => {
       if (op.type === 'equal') return;
       const seg = document.createElement('div');
       seg.className = `minimap-seg ${op.type}`;
       seg.style.top    = `${(i / totalRows) * 100}%`;
-      seg.style.height = `${Math.max(2, minimapEl.clientHeight / totalRows)}px`;
-      minimapTrack.appendChild(seg);
+      seg.style.height = `${segH}px`;
+      frag.appendChild(seg);
     });
+    minimapTrack.appendChild(frag);
   }
 
   function updateMinimapViewport() {
